@@ -44,6 +44,9 @@ func (m InitModel) Update(_ app.App, msg tea.Msg) (app.Model, tea.Cmd) {
 			if m.Cursor == 0 {
 				return LoginModel{InputPos: 0}, nil
 			}
+			if m.Cursor == 1 {
+				return RegisterModel{InputPos: 0}, nil
+			}
 		}
 	}
 	return m, nil
@@ -56,7 +59,7 @@ func (m InitModel) View() string {
 		if i == m.Cursor {
 			cursor = ">"
 		}
-		title += fmt.Sprintf("%m %m\n", cursor, choice)
+		title += fmt.Sprintf("%s %s\n", cursor, choice)
 	}
 	return title
 }

@@ -11,29 +11,29 @@ import (
 )
 
 const (
-	LoginLoginText    = "Enter login: %s"
-	LoginPasswordText = "Enter Password: %s"
+	RegisterLoginText    = "Enter login: %s"
+	RegisterPasswordText = "Enter Password: %s"
 )
 
-type LoginModel struct {
+type RegisterModel struct {
 	Login    string
 	Password string
 	InputPos int
 }
 
-func NewLoginModel(inputPos int) *LoginModel {
-	return &LoginModel{
+func NewRegisterModel(inputPos int) *RegisterModel {
+	return &RegisterModel{
 		InputPos: inputPos,
 	}
 }
 
-func (m LoginModel) Update(app app.App, msg tea.Msg) (app.Model, tea.Cmd) {
+func (m RegisterModel) Update(app app.App, msg tea.Msg) (app.Model, tea.Cmd) {
 	if key, ok := msg.(tea.KeyMsg); ok {
 		if key.String() == "enter" {
 			if m.InputPos == 0 {
 				m.InputPos++
 			} else {
-				return m.authenticateUser(app)
+				return m.registerUser(app)
 			}
 		} else {
 			if m.InputPos == 0 {
@@ -46,30 +46,30 @@ func (m LoginModel) Update(app app.App, msg tea.Msg) (app.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m LoginModel) View() string {
+func (m RegisterModel) View() string {
 	if m.InputPos == 0 {
-		return fmt.Sprintf(LoginLoginText, m.Login)
+		return fmt.Sprintf(RegisterLoginText, m.Login)
 	}
-	return fmt.Sprintf(LoginPasswordText, m.Password)
+	return fmt.Sprintf(RegisterPasswordText, m.Password)
 }
 
-func (m LoginModel) authenticateUser(app app.App) (app.Model, tea.Cmd) {
+func (m RegisterModel) registerUser(app app.App) (app.Model, tea.Cmd) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	req := &pb.LoginRequest{
+	req := &pb.RegisterRequest{
 		Login:    m.Login,
 		Password: m.Password,
 	}
 
-	res, err := app.UserServiceClient.Login(ctx, req)
+	res, err := app.UserServiceClient.Register(ctx, req)
 	if err != nil {
 		zap.L().Error("Authentication error", zap.Error(err))
-		return LoginModel{}, nil
+		return RegisterModel{}, nil
 	}
 
 	fmt.Println(res)
 
-	fmt.Println("Успешный вход!")
+	fmt.Println("Успешная регистрация")
 	return InitModel{Choices: Choices}, nil
 }
