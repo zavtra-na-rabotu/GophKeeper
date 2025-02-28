@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/app"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/pb"
 	"go.uber.org/zap"
 	"time"
@@ -15,24 +16,18 @@ const (
 )
 
 type LoginState struct {
-	Login             string
-	Password          string
-	InputPos          int
-	UserServiceClient pb.UserServiceClient
+	Login    string
+	Password string
+	InputPos int
 }
 
-func (s LoginState) Init() tea.Cmd {
-	return nil
-}
-
-func (s LoginState) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (s LoginState) Update(app app.App, msg tea.Msg) (app.State, tea.Cmd) {
 	if key, ok := msg.(tea.KeyMsg); ok {
 		if key.String() == "enter" {
 			if s.InputPos == 0 {
 				s.InputPos++
 			} else {
-				return s.authenticateUser()
-				//return InitState{Choices: Choices}, nil
+				return s.authenticateUser(app)
 			}
 		} else {
 			if s.InputPos == 0 {
@@ -52,7 +47,7 @@ func (s LoginState) View() string {
 	return fmt.Sprintf(EnterPasswordText, s.Password)
 }
 
-func (s LoginState) authenticateUser() (tea.Model, tea.Cmd) {
+func (s LoginState) authenticateUser(app app.App) (app.State, tea.Cmd) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -61,10 +56,10 @@ func (s LoginState) authenticateUser() (tea.Model, tea.Cmd) {
 		Password: s.Password,
 	}
 
-	res, err := s.UserServiceClient.Login(ctx, req)
+	res, err := app.UserServiceClient.Login(ctx, req)
 	if err != nil {
 		zap.L().Error("Authentication error", zap.Error(err))
-		return LoginState{UserServiceClient: s.UserServiceClient}, nil
+		return LoginState{}, nil
 	}
 
 	fmt.Println(res)
@@ -73,7 +68,7 @@ func (s LoginState) authenticateUser() (tea.Model, tea.Cmd) {
 	return InitState{Choices: Choices}, nil
 }
 
-func (s LoginState) registerUser() (tea.Model, tea.Cmd) {
+func (s LoginState) registerUser(app app.App) (app.State, tea.Cmd) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -82,10 +77,10 @@ func (s LoginState) registerUser() (tea.Model, tea.Cmd) {
 		Password: s.Password,
 	}
 
-	res, err := s.UserServiceClient.Register(ctx, req)
+	res, err := app.UserServiceClient.Register(ctx, req)
 	if err != nil {
 		zap.L().Error("Authentication error", zap.Error(err))
-		return LoginState{UserServiceClient: s.UserServiceClient}, nil
+		return LoginState{}, nil
 	}
 
 	fmt.Println(res)

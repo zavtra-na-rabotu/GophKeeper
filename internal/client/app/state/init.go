@@ -3,6 +3,7 @@ package state
 import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/app"
 )
 
 const (
@@ -18,11 +19,14 @@ type InitState struct {
 	Cursor  int
 }
 
-func (s InitState) Init() tea.Cmd {
-	return nil
+func NewInitState(choices []string, cursor int) *InitState {
+	return &InitState{
+		Choices: choices,
+		Cursor:  cursor,
+	}
 }
 
-func (s InitState) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (s InitState) Update(_ app.App, msg tea.Msg) (app.State, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
