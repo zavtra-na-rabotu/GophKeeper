@@ -5,19 +5,19 @@ import (
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/pb"
 )
 
-type State interface {
-	Update(App, tea.Msg) (State, tea.Cmd)
+type Model interface {
+	Update(App, tea.Msg) (Model, tea.Cmd)
 	View() string
 }
 
 type App struct {
-	State             State
+	Model             Model
 	UserServiceClient pb.UserServiceClient
 }
 
-func NewApp(state State, userServiceClient pb.UserServiceClient) *App {
+func NewApp(model Model, userServiceClient pb.UserServiceClient) *App {
 	return &App{
-		State:             state,
+		Model:             model,
 		UserServiceClient: userServiceClient,
 	}
 }
@@ -27,11 +27,11 @@ func (a App) Init() tea.Cmd {
 }
 
 func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	newState, cmd := a.State.Update(a, msg)
-	a.State = newState
+	newModel, cmd := a.Model.Update(a, msg)
+	a.Model = newModel
 	return a, cmd
 }
 
 func (a App) View() string {
-	return a.State.View()
+	return a.Model.View()
 }

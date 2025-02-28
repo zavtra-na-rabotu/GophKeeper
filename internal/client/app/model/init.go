@@ -1,4 +1,4 @@
-package state
+package model
 
 import (
 	"fmt"
@@ -14,49 +14,49 @@ var (
 	Choices = []string{"Login", "Register", "Exit"}
 )
 
-type InitState struct {
+type InitModel struct {
 	Choices []string
 	Cursor  int
 }
 
-func NewInitState(choices []string, cursor int) *InitState {
-	return &InitState{
+func NewInitModel(choices []string, cursor int) *InitModel {
+	return &InitModel{
 		Choices: choices,
 		Cursor:  cursor,
 	}
 }
 
-func (s InitState) Update(_ app.App, msg tea.Msg) (app.State, tea.Cmd) {
+func (m InitModel) Update(_ app.App, msg tea.Msg) (app.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "q":
-			return s, tea.Quit
+			return m, tea.Quit
 		case "up":
-			if s.Cursor > 0 {
-				s.Cursor--
+			if m.Cursor > 0 {
+				m.Cursor--
 			}
 		case "down":
-			if s.Cursor < len(s.Choices)-1 {
-				s.Cursor++
+			if m.Cursor < len(m.Choices)-1 {
+				m.Cursor++
 			}
 		case "enter":
-			if s.Cursor == 0 {
-				return LoginState{InputPos: 0}, nil
+			if m.Cursor == 0 {
+				return LoginModel{InputPos: 0}, nil
 			}
 		}
 	}
-	return s, nil
+	return m, nil
 }
 
-func (s InitState) View() string {
+func (m InitModel) View() string {
 	title := TitleText
-	for i, choice := range s.Choices {
+	for i, choice := range m.Choices {
 		cursor := " "
-		if i == s.Cursor {
+		if i == m.Cursor {
 			cursor = ">"
 		}
-		title += fmt.Sprintf("%s %s\n", cursor, choice)
+		title += fmt.Sprintf("%m %m\n", cursor, choice)
 	}
 	return title
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/app"
-	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/app/state"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/app/model"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -23,16 +23,16 @@ func main() {
 	// Создаем gRPC-клиент
 	userServiceClient := pb.NewUserServiceClient(conn)
 
-	// Create initial state
-	initState := state.NewInitState(state.Choices, 0)
-	//initState := state.InitState{Choices: state.Choices}
+	// Create initial model
+	initModel := model.NewInitModel(model.Choices, 0)
+	//initModel := model.InitModel{Choices: model.Choices}
 
 	// Create app context with all dependencies
-	appContext := app.NewApp(initState, userServiceClient)
+	appContext := app.NewApp(initModel, userServiceClient)
 
 	p := tea.NewProgram(appContext)
 
-	//p := tea.NewProgram(state.InitState{Choices: state.Choices})
+	//p := tea.NewProgram(model.InitModel{Choices: model.Choices})
 
 	_, err = p.Run()
 	if err != nil {

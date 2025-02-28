@@ -1,4 +1,4 @@
-package state
+package model
 
 import (
 	"context"
@@ -15,76 +15,82 @@ const (
 	EnterPasswordText = "Enter Password: %s"
 )
 
-type LoginState struct {
+type LoginModel struct {
 	Login    string
 	Password string
 	InputPos int
 }
 
-func (s LoginState) Update(app app.App, msg tea.Msg) (app.State, tea.Cmd) {
+func NewLoginModel(inputPos int) *LoginModel {
+	return &LoginModel{
+		InputPos: inputPos,
+	}
+}
+
+func (m LoginModel) Update(app app.App, msg tea.Msg) (app.Model, tea.Cmd) {
 	if key, ok := msg.(tea.KeyMsg); ok {
 		if key.String() == "enter" {
-			if s.InputPos == 0 {
-				s.InputPos++
+			if m.InputPos == 0 {
+				m.InputPos++
 			} else {
-				return s.authenticateUser(app)
+				return m.authenticateUser(app)
 			}
 		} else {
-			if s.InputPos == 0 {
-				s.Login += key.String()
+			if m.InputPos == 0 {
+				m.Login += key.String()
 			} else {
-				s.Password += key.String()
+				m.Password += key.String()
 			}
 		}
 	}
-	return s, nil
+	return m, nil
 }
 
-func (s LoginState) View() string {
-	if s.InputPos == 0 {
-		return fmt.Sprintf(EnterLoginText, s.Login)
+func (m LoginModel) View() string {
+	if m.InputPos == 0 {
+		return fmt.Sprintf(EnterLoginText, m.Login)
 	}
-	return fmt.Sprintf(EnterPasswordText, s.Password)
+	return fmt.Sprintf(EnterPasswordText, m.Password)
 }
 
-func (s LoginState) authenticateUser(app app.App) (app.State, tea.Cmd) {
+func (m LoginModel) authenticateUser(app app.App) (app.Model, tea.Cmd) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
 	req := &pb.LoginRequest{
-		Login:    s.Login,
-		Password: s.Password,
+		Login:    m.Login,
+		Password: m.Password,
 	}
 
 	res, err := app.UserServiceClient.Login(ctx, req)
 	if err != nil {
 		zap.L().Error("Authentication error", zap.Error(err))
-		return LoginState{}, nil
+		return LoginModel{}, nil
 	}
 
 	fmt.Println(res)
 
 	fmt.Println("Успешный вход!")
-	return InitState{Choices: Choices}, nil
+	return InitModel{Choices: Choices}, nil
 }
 
-func (s LoginState) registerUser(app app.App) (app.State, tea.Cmd) {
+func (m LoginModel) registerUser(app app.App) (app.Model, tea.Cmd) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
 	req := &pb.RegisterRequest{
-		Login:    s.Login,
-		Password: s.Password,
+		Login:    m.Login,
+		Password: m.Password,
 	}
 
 	res, err := app.UserServiceClient.Register(ctx, req)
 	if err != nil {
 		zap.L().Error("Authentication error", zap.Error(err))
-		return LoginState{}, nil
+		return LoginModel{}, nil
 	}
 
 	fmt.Println(res)
 
 	fmt.Println("Успешная регистрация")
-	return InitState{Choices: Choices}, nil
+	return InitModel{Choices: Choices}, nil
 }
