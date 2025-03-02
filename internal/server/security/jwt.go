@@ -14,7 +14,7 @@ type JwtService struct {
 
 type CustomClaims struct {
 	jwt.RegisteredClaims
-	UserID int `json:"user_id"`
+	UserID uint64 `json:"user_id"`
 }
 
 var (
@@ -25,10 +25,9 @@ func NewJwtService(jwtSecret []byte, jwtLifetimeHours int) *JwtService {
 	return &JwtService{jwtSecret: jwtSecret, jwtLifetime: time.Hour * time.Duration(jwtLifetimeHours)}
 }
 
-func (g *JwtService) GenerateJwtToken(userID int) (string, error) {
+func (g *JwtService) GenerateJwtToken(userID uint64) (string, error) {
 	claims := CustomClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
-			// TODO: добавить в Subject login ?
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(g.jwtLifetime)),
 		},
 		UserID: userID,
@@ -36,7 +35,7 @@ func (g *JwtService) GenerateJwtToken(userID int) (string, error) {
 
 	jwtWithClaims := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	token, err := jwtWithClaims.SignedString([]byte(g.jwtSecret))
+	token, err := jwtWithClaims.SignedString(g.jwtSecret)
 	if err != nil {
 		return "", err
 	}

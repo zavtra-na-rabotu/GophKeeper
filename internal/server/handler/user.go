@@ -20,7 +20,7 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 }
 
 func (h *UserHandler) Login(ctx context.Context, request *pb.LoginRequest) (*pb.LoginResponse, error) {
-	token, err := h.userService.Login(request)
+	token, err := h.userService.Login(ctx, request)
 	if err != nil {
 		return nil, status.Errorf(codes.Unauthenticated, "login failed %v", err)
 	}
@@ -30,7 +30,7 @@ func (h *UserHandler) Login(ctx context.Context, request *pb.LoginRequest) (*pb.
 }
 
 func (h *UserHandler) Register(ctx context.Context, request *pb.RegisterRequest) (*pb.RegisterResponse, error) {
-	token, err := h.userService.Register(request)
+	token, err := h.userService.Register(ctx, request)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to register %v", err)
 	}

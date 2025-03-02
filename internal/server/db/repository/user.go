@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"github.com/jackc/pgerrcode"
@@ -22,8 +23,8 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (r *UserRepository) GetByLogin(login string) (*model.User, error) {
-	row := r.db.QueryRow(`SELECT id, login, password_hash FROM users WHERE login = $1`, login)
+func (r *UserRepository) GetByLogin(ctx context.Context, login string) (*model.User, error) {
+	row := r.db.QueryRowContext(ctx, `SELECT id, login, password_hash FROM users WHERE login = $1`, login)
 
 	var user model.User
 	err := row.Scan(&user.ID, &user.Login, &user.PasswordHash)
@@ -35,10 +36,10 @@ func (r *UserRepository) GetByLogin(login string) (*model.User, error) {
 	return &user, nil
 }
 
-func (r *UserRepository) Create(login string, password string) (int, error) {
-	row := r.db.QueryRow(`INSERT INTO users (login, password_hash) VALUES ($1, $2) RETURNING id`, login, password)
+func (r *UserRepository) Create(ctx context.Context, login string, password string) (uint64, error) {
+	row := r.db.QueryRowContext(ctx, `INSERT INTO users (login, password_hash) VALUES ($1, $2) RETURNING id`, login, password)
 
-	var userID int
+	var userID uint64
 	err := row.Scan(&userID)
 	if err != nil {
 		var pgErr *pgconn.PgError

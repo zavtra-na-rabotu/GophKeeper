@@ -65,11 +65,10 @@ func (m LoginModel) authenticateUser(app app.App) (app.Model, tea.Cmd) {
 	res, err := app.UserServiceClient.Login(ctx, req)
 	if err != nil {
 		zap.L().Error("Authentication error", zap.Error(err))
-		return LoginModel{}, nil
+		return NewMessageModel(fmt.Sprintf("Authentication error %s", err)), nil
 	}
 
-	fmt.Println(res)
+	app.Token = res.Token
 
-	fmt.Println("Успешный вход!")
-	return InitModel{Choices: Choices}, nil
+	return NewMessageModel("Authentication success"), nil
 }

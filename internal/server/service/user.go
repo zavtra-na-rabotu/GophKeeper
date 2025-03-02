@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/pb"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/server/db/repository"
@@ -22,8 +23,8 @@ func NewUserService(userRepository *repository.UserRepository, jwtGenerator *sec
 	}
 }
 
-func (s *UserService) Login(request *pb.LoginRequest) (string, error) {
-	user, err := s.userRepository.GetByLogin(request.Login)
+func (s *UserService) Login(ctx context.Context, request *pb.LoginRequest) (string, error) {
+	user, err := s.userRepository.GetByLogin(ctx, request.Login)
 	if err != nil {
 		zap.L().Error("User not found", zap.Error(err))
 		return "", err
@@ -37,14 +38,14 @@ func (s *UserService) Login(request *pb.LoginRequest) (string, error) {
 	return s.jwtGenerator.GenerateJwtToken(user.ID)
 }
 
-func (s *UserService) Register(request *pb.RegisterRequest) (string, error) {
+func (s *UserService) Register(ctx context.Context, request *pb.RegisterRequest) (string, error) {
 	hash, err := security.HashPassword(request.Password)
 	if err != nil {
 		zap.L().Error("Failed to hash password", zap.Error(err))
 		return "", err
 	}
 
-	userID, err := s.userRepository.Create(request.Login, hash)
+	userID, err := s.userRepository.Create(ctx, request.Login, hash)
 	if err != nil {
 		zap.L().Error("Failed to create user", zap.Error(err))
 		return "", err

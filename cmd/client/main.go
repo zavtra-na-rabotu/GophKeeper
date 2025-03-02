@@ -25,7 +25,6 @@ func main() {
 
 	// Create initial model
 	initModel := model.NewInitModel(model.Choices, 0)
-	//initModel := model.InitModel{Choices: model.Choices}
 
 	// Create app context with all dependencies
 	appContext := app.NewApp(initModel, userServiceClient)

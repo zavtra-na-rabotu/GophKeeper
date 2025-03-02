@@ -1,11 +1,37 @@
 package repository
 
-import "database/sql"
+import (
+	"context"
+	"database/sql"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/model"
+)
 
 type SecretRepository struct {
 	db *sql.DB
 }
 
-func NewDataRepository(db *sql.DB) *SecretRepository {
+func NewSecretRepository(db *sql.DB) *SecretRepository {
 	return &SecretRepository{db: db}
+}
+
+func (r *SecretRepository) Save(ctx context.Context, secret *model.Secret) (int, error) {
+	row := r.db.QueryRowContext(
+		ctx,
+		`INSERT INTO secrets (user_id, title, type, content, metadata, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+		secret.UserID,
+		secret.Title,
+		secret.Type,
+		secret.Content,
+		secret.Metadata,
+		secret.CreatedAt,
+		secret.UpdatedAt,
+	)
+
+	var secretID int
+	err := row.Scan(&secretID)
+	if err != nil {
+		return 0, err
+	}
+
+	return secretID, nil
 }

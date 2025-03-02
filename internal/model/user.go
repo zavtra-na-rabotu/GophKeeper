@@ -1,7 +1,7 @@
 package model
 
 type User struct {
-	ID           int
+	ID           uint64
 	Login        string
 	PasswordHash string
 }

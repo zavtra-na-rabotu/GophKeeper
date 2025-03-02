@@ -51,9 +51,9 @@ func main() {
 	userRepository := repository.NewUserRepository(dbConnection)
 	userService := service.NewUserService(userRepository, jwtService)
 
-	// Data
-	//secretRepository := repository.NewDataRepository(dbConnection)
-	//secretService := service.NewSecretService(secretRepository)
+	// Secret
+	secretRepository := repository.NewSecretRepository(dbConnection)
+	secretService := service.NewSecretService(secretRepository)
 
 	// Create list of interceptors
 	var interceptors []grpc.UnaryServerInterceptor
@@ -62,8 +62,9 @@ func main() {
 	// Create gRPCServer
 	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptors...))
 
-	// Register hjandlers
+	// Register handlers
 	pb.RegisterUserServiceServer(gRPCServer, handler.NewUserHandler(userService))
+	pb.RegisterSecretServiceServer(gRPCServer, handler.NewSecretHandler(secretService))
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
 	defer stop()

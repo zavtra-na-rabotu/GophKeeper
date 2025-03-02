@@ -13,6 +13,7 @@ type Model interface {
 type App struct {
 	Model             Model
 	UserServiceClient pb.UserServiceClient
+	Token             string
 }
 
 func NewApp(model Model, userServiceClient pb.UserServiceClient) *App {

@@ -42,10 +42,10 @@ func (m InitModel) Update(_ app.App, msg tea.Msg) (app.Model, tea.Cmd) {
 			}
 		case "enter":
 			if m.Cursor == 0 {
-				return LoginModel{InputPos: 0}, nil
+				return NewLoginModel(0), nil
 			}
 			if m.Cursor == 1 {
-				return RegisterModel{InputPos: 0}, nil
+				return NewRegisterModel(0), nil
 			}
 		}
 	}

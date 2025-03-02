@@ -16,7 +16,10 @@ var whitelistedMethods = []string{
 	pb.UserService_Register_FullMethodName,
 }
 
-const JWTHeader = "jwt"
+const (
+	JWTHeader        = "jwt"
+	UserIDContextKey = "UserID"
+)
 
 func AuthorizationInterceptor(jwtService *security.JwtService) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
@@ -44,7 +47,7 @@ func AuthorizationInterceptor(jwtService *security.JwtService) grpc.UnaryServerI
 			return nil, status.Errorf(codes.Unauthenticated, "invalid token: %v", err)
 		}
 
-		ctx = context.WithValue(ctx, "userID", claims.UserID)
+		ctx = context.WithValue(ctx, UserIDContextKey, claims.UserID)
 
 		return handler(ctx, req)
 	}

@@ -64,12 +64,11 @@ func (m RegisterModel) registerUser(app app.App) (app.Model, tea.Cmd) {
 
 	res, err := app.UserServiceClient.Register(ctx, req)
 	if err != nil {
-		zap.L().Error("Authentication error", zap.Error(err))
-		return RegisterModel{}, nil
+		zap.L().Error("Registration error", zap.Error(err))
+		return NewMessageModel(fmt.Sprintf("Registration error %s", err)), nil
 	}
 
-	fmt.Println(res)
+	app.Token = res.Token
 
-	fmt.Println("Успешная регистрация")
-	return InitModel{Choices: Choices}, nil
+	return NewMessageModel(fmt.Sprintf("Registration success")), nil
 }
