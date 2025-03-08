@@ -66,3 +66,12 @@ func (r *SecretRepository) GetAllByUserID(ctx context.Context, userID uint64) ([
 
 	return secrets, nil
 }
+
+func (r *SecretRepository) DeleteByUserID(ctx context.Context, secretID uint64, userID uint64) error {
+	_, err := r.db.ExecContext(ctx, "DELETE FROM secrets WHERE id = $1 AND user_id = $2", secretID, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

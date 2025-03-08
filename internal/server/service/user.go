@@ -26,7 +26,6 @@ func NewUserService(userRepository *repository.UserRepository, jwtGenerator *sec
 func (s *UserService) Login(ctx context.Context, request *pb.LoginRequest) (string, error) {
 	user, err := s.userRepository.GetByLogin(ctx, request.Login)
 	if err != nil {
-		zap.L().Error("User not found", zap.Error(err))
 		return "", err
 	}
 

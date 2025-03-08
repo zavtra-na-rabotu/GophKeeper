@@ -61,3 +61,15 @@ func (s *SecretService) GetAll(ctx context.Context) ([]*pb.Secret, error) {
 
 	return protoSecrets, nil
 }
+
+func (s *SecretService) DeleteSecret(ctx context.Context, secretID uint64) error {
+	userID := ctx.Value(interceptor.UserIDContextKey).(uint64)
+
+	err := s.secretRepository.DeleteByUserID(ctx, secretID, userID)
+	if err != nil {
+		zap.L().Error("Failed to delete secret", zap.Error(err))
+		return fmt.Errorf("failed to delete secret: %w", err)
+	}
+
+	return nil
+}

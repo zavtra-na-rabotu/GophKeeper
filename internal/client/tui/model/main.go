@@ -41,7 +41,7 @@ func (m MainModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m MainModel) Update(app tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
+func (m MainModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -55,6 +55,17 @@ func (m MainModel) Update(app tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) 
 			if m.focusIndex < len(m.table)-1 {
 				m.focusIndex++
 			}
+		//case "a":
+		//	//TODO: CreateSecretScreen
+		//case "e":
+		//// TODO: EditSecretScreen
+		case "d":
+			secretID, err := strconv.ParseUint(m.table[m.focusIndex][0], 10, 64)
+			if err != nil {
+				m.error = err.Error()
+			}
+			m.deleteSecret(ctx, secretID)
+			m.getSecrets(ctx)
 		}
 	}
 	return m, nil
@@ -88,6 +99,8 @@ func (m *MainModel) getSecrets(ctx tui.TUIContext) {
 		return
 	}
 
+	m.table = nil
+
 	for _, secret := range secrets {
 		secretType, err := model.ProtoToGoSecretType(secret.Type)
 		if err != nil {
@@ -102,5 +115,12 @@ func (m *MainModel) getSecrets(ctx tui.TUIContext) {
 			secret.CreatedAt.AsTime().Format("02 Jan 2006 15:04:05"),
 			secret.UpdatedAt.AsTime().Format("02 Jan 2006 15:04:05"),
 		})
+	}
+}
+
+func (m MainModel) deleteSecret(ctx tui.TUIContext, secretID uint64) {
+	err := ctx.SecretService.DeleteSecretById(secretID)
+	if err != nil {
+		m.error = err.Error()
 	}
 }

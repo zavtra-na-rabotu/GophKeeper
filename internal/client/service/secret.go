@@ -38,12 +38,18 @@ func (s *SecretService) SetToken(token string) {
 	s.token = token
 }
 
-func (s *SecretService) CreateTextSecret(title string, text string, metadata string, password string) error {
+func (s *SecretService) CreateTextSecret(secretTitle string, secretText string, secretMetadata string, password string) error {
+	if len(s.token) == 0 {
+		return ErrNoToken
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
+	ctx = createMetadata(ctx, s.token)
+
 	textProto := &pb.Text{
-		Text: text,
+		Text: secretText,
 	}
 
 	serializedContent, err := proto.Marshal(textProto)
@@ -58,10 +64,10 @@ func (s *SecretService) CreateTextSecret(title string, text string, metadata str
 
 	request := &pb.SaveSecretRequest{
 		Secret: &pb.Secret{
-			Title:     title,
+			Title:     secretTitle,
 			Type:      pb.SecretType_SECRET_TYPE_TEXT,
 			Content:   encryptedContent,
-			Metadata:  metadata,
+			Metadata:  secretMetadata,
 			CreatedAt: timestamppb.New(time.Now()),
 			UpdatedAt: timestamppb.New(time.Now()),
 		},
@@ -83,9 +89,7 @@ func (s *SecretService) GetSecrets() ([]*pb.Secret, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	// Create metadata with token
-	md := metadata.New(map[string]string{"jwt": s.token})
-	ctx = metadata.NewOutgoingContext(ctx, md)
+	ctx = createMetadata(ctx, s.token)
 
 	res, err := s.secretServiceClient.GetSecrets(ctx, &emptypb.Empty{})
 	if err != nil {
@@ -93,4 +97,29 @@ func (s *SecretService) GetSecrets() ([]*pb.Secret, error) {
 	}
 
 	return res.GetSecrets(), nil
+}
+
+func (s *SecretService) DeleteSecretById(secretID uint64) error {
+	if len(s.token) == 0 {
+		return ErrNoToken
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	ctx = createMetadata(ctx, s.token)
+
+	_, err := s.secretServiceClient.DeleteSecret(ctx, &pb.DeleteSecretByIdRequest{Id: secretID})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createMetadata(ctx context.Context, token string) context.Context {
+	md := metadata.New(map[string]string{"jwt": token})
+	ctx = metadata.NewOutgoingContext(ctx, md)
+
+	return ctx
 }

@@ -6,8 +6,8 @@ const (
 	Red   = lipgloss.Color("#ff0000")
 	White = lipgloss.Color("#ffffff")
 
-	Focused = lipgloss.Color("205")
-	Blurred = lipgloss.Color("240")
+	Focused = lipgloss.Color("#ff5faf")
+	Blurred = lipgloss.Color("#585858")
 )
 
 var (
