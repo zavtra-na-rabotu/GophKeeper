@@ -25,9 +25,9 @@ func Configure() *Configuration {
 	var config Configuration
 
 	flag.IntVar(&config.GRPCPort, "p", 50051, "GRPC port")
-	flag.StringVar(&config.DatabaseDsn, "d", "", "Адрес подключения к базе данных")
-	flag.StringVar(&config.JwtSecret, "j", "secret", "JWT секрет")
-	flag.IntVar(&config.JwtLifetimeHours, "l", 24, "Время жизни JWT токена в часах")
+	flag.StringVar(&config.DatabaseDsn, "d", "", "Database DSN")
+	flag.StringVar(&config.JwtSecret, "j", "secret", "JWT secret")
+	flag.IntVar(&config.JwtLifetimeHours, "l", 24, "JWT lifetime hours")
 	flag.Parse()
 
 	envVariables := envs{}

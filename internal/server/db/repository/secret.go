@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/model"
+	"go.uber.org/zap"
 )
 
 type SecretRepository struct {
@@ -34,4 +35,34 @@ func (r *SecretRepository) Save(ctx context.Context, secret *model.Secret) (int,
 	}
 
 	return secretID, nil
+}
+
+func (r *SecretRepository) GetAllByUserID(ctx context.Context, userID uint64) ([]*model.Secret, error) {
+	rows, err := r.db.QueryContext(
+		ctx,
+		"SELECT id, title, type, content, metadata, created_at, updated_at FROM secrets WHERE user_id = $1",
+		userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var secrets []*model.Secret
+	for rows.Next() {
+		secret := &model.Secret{}
+		err := rows.Scan(&secret.ID, &secret.Title, &secret.Type, &secret.Content, &secret.Metadata, &secret.CreatedAt, &secret.UpdatedAt)
+		if err != nil {
+			zap.L().Error("Failed to get secrets", zap.Error(err))
+			return nil, err
+		}
+		secrets = append(secrets, secret)
+	}
+
+	if err := rows.Err(); err != nil {
+		zap.L().Error("Failed to get secrets", zap.Error(err))
+		return nil, err
+	}
+
+	return secrets, nil
 }

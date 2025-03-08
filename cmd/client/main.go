@@ -3,8 +3,11 @@ package main
 import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/app"
-	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/app/model"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/configuration"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/security"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/service"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/model"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -13,29 +16,36 @@ import (
 )
 
 func main() {
-	serverAddr := "localhost:50051" // Адрес gRPC сервера
-	conn, err := grpc.NewClient(serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	config := configuration.Configure()
+
+	conn, err := grpc.NewClient(config.ServerAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("Ошибка подключения к gRPC серверу: %v", err)
 	}
 	defer conn.Close()
 
-	// Создаем gRPC-клиент
+	// Create GRPC client
 	userServiceClient := pb.NewUserServiceClient(conn)
+	secretServiceClient := pb.NewSecretServiceClient(conn)
+
+	// Create required components
+	encryptionService := security.NewEncryptionService()
+
+	// Create services
+	userService := service.NewUserService(userServiceClient)
+	secretService := service.NewSecretService(secretServiceClient, encryptionService)
 
 	// Create initial model
 	initModel := model.NewInitModel(model.Choices, 0)
 
-	// Create app context with all dependencies
-	appContext := app.NewApp(initModel, userServiceClient)
+	// Create tui context with all dependencies
+	appContext := tui.NewTUIContext(initModel, userService, secretService)
 
 	p := tea.NewProgram(appContext)
 
-	//p := tea.NewProgram(model.InitModel{Choices: model.Choices})
-
 	_, err = p.Run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Ошибка: %v", err)
+		fmt.Fprintf(os.Stderr, "Error: %v", err)
 		os.Exit(1)
 	}
 }

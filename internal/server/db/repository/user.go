@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/model"
 	"go.uber.org/zap"
@@ -29,6 +30,9 @@ func (r *UserRepository) GetByLogin(ctx context.Context, login string) (*model.U
 	var user model.User
 	err := row.Scan(&user.ID, &user.Login, &user.PasswordHash)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrUserNotFound
+		}
 		zap.L().Error("Failed to query user by login", zap.String("login", login), zap.Error(err))
 		return nil, err
 	}

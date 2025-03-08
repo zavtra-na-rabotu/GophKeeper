@@ -27,16 +27,37 @@ func (s *SecretService) Save(ctx context.Context, request *pb.SaveSecretRequest)
 		return fmt.Errorf("secret mapping failed: %w", err)
 	}
 
-	// Extract userID from context
 	userID := ctx.Value(interceptor.UserIDContextKey)
 
 	secret.UserID = userID.(uint64)
 
 	_, err = s.secretRepository.Save(ctx, secret)
 	if err != nil {
-		zap.L().Error("Secret repository save failed", zap.Error(err))
-		return fmt.Errorf("secret save failed: %w", err)
+		zap.L().Error("Failed to save secret", zap.Error(err))
+		return fmt.Errorf("failed to save secret: %w", err)
 	}
 
 	return nil
+}
+
+func (s *SecretService) GetAll(ctx context.Context) ([]*pb.Secret, error) {
+	userID := ctx.Value(interceptor.UserIDContextKey).(uint64)
+
+	secrets, err := s.secretRepository.GetAllByUserID(ctx, userID)
+	if err != nil {
+		zap.L().Error("Failed to get all user secrets", zap.Error(err))
+		return nil, fmt.Errorf("failed to get all user secrets: %w", err)
+	}
+
+	var protoSecrets []*pb.Secret
+	for _, secret := range secrets {
+		protoSecret, err := model.GoToProtoSecret(secret)
+		if err != nil {
+			zap.L().Error("Failed to convert secret to proto", zap.Error(err))
+			return nil, fmt.Errorf("failed to convert secret to proto: %w", err)
+		}
+		protoSecrets = append(protoSecrets, protoSecret)
+	}
+
+	return protoSecrets, nil
 }

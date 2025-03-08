@@ -28,3 +28,12 @@ func (h *SecretHandler) SaveSecret(ctx context.Context, request *pb.SaveSecretRe
 
 	return &emptypb.Empty{}, nil
 }
+
+func (h *SecretHandler) GetSecrets(ctx context.Context, empty *emptypb.Empty) (*pb.GetSecretsResponse, error) {
+	secrets, err := h.secretService.GetAll(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &pb.GetSecretsResponse{Secrets: secrets}, nil
+}
