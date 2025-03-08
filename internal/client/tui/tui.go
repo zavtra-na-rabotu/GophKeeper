@@ -5,6 +5,7 @@ import (
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/service"
 )
 
+// This library is a nightmare... spent 80% of time making TUI :(
 type Model interface {
 	Init() tea.Cmd
 	Update(TUIContext, tea.Msg) (Model, tea.Cmd)

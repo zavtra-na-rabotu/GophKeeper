@@ -5,15 +5,18 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/helpers"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/style"
-	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/utils"
 	"strings"
 )
 
 const (
-	buttonsNumber       = 2
+	loginInputIndex     = 0
+	passwordInputIndex  = 1
 	loginButtonIndex    = 2
 	registerButtonIndex = 3
+	loginLimit          = 255
+	passwordLimit       = 50
 )
 
 var (
@@ -32,26 +35,26 @@ type LoginRegisterModel struct {
 
 func NewLoginRegisterModel() LoginRegisterModel {
 	m := LoginRegisterModel{
-		inputs: make([]textinput.Model, 3),
+		inputs: make([]textinput.Model, 2),
 	}
 
-	loginInput := utils.NewInput(utils.InputSettings{
+	loginInput := helpers.NewInput(helpers.InputSettings{
 		Placeholder: "Login",
 		Focus:       true,
-		CharLimit:   255,
+		CharLimit:   loginLimit,
 		Style:       style.FocusedStyle,
 	})
 
-	passwordInput := utils.NewInput(utils.InputSettings{
+	passwordInput := helpers.NewInput(helpers.InputSettings{
 		Placeholder: "Password",
 		Focus:       false,
-		CharLimit:   50,
+		CharLimit:   passwordLimit,
 	})
 	passwordInput.EchoMode = textinput.EchoPassword
 	passwordInput.EchoCharacter = '•'
 
-	m.inputs[0] = loginInput
-	m.inputs[1] = passwordInput
+	m.inputs[loginInputIndex] = loginInput
+	m.inputs[passwordInputIndex] = passwordInput
 
 	return m
 }
@@ -73,6 +76,7 @@ func (m LoginRegisterModel) Update(app tui.TUIContext, msg tea.Msg) (tui.Model, 
 		case "tab", "shift+tab", "enter", "up", "down":
 			s := msg.String()
 
+			// Handle login button
 			if s == "enter" && m.focusIndex == loginButtonIndex {
 				err := m.loginUser(app)
 				if err != nil {
@@ -82,30 +86,30 @@ func (m LoginRegisterModel) Update(app tui.TUIContext, msg tea.Msg) (tui.Model, 
 				}
 			}
 
+			// Handle register button
 			if s == "enter" && m.focusIndex == registerButtonIndex {
 				err := m.registerUser(app)
 				if err != nil {
 					m.error = err.Error()
 				} else {
-					// TODO: GOTO Main menu
+					return NewMainModel(app), nil
 				}
 			}
 
-			// Cycle indexes
 			if s == "up" || s == "shift+tab" {
 				m.focusIndex--
 			} else {
 				m.focusIndex++
 			}
 
-			if m.focusIndex > len(m.inputs) {
+			if m.focusIndex > len(m.inputs)+1 {
 				m.focusIndex = 0
 			} else if m.focusIndex < 0 {
 				m.focusIndex = len(m.inputs)
 			}
 
 			cmds := make([]tea.Cmd, len(m.inputs))
-			for i := 0; i <= len(m.inputs)-buttonsNumber; i++ {
+			for i := 0; i <= len(m.inputs)-1; i++ {
 				if i == m.focusIndex {
 					// Set focused state
 					cmds[i] = m.inputs[i].Focus()
@@ -143,7 +147,7 @@ func (m LoginRegisterModel) View() string {
 
 	for i := range m.inputs {
 		b.WriteString(m.inputs[i].View())
-		if i < len(m.inputs)-buttonsNumber {
+		if i < len(m.inputs)-1 {
 			b.WriteRune('\n')
 		}
 	}
