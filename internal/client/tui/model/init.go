@@ -4,28 +4,32 @@ import (
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/style"
+	"strings"
 )
 
 const (
-	initTitleText      = "Choose using arrow keys and 'Enter':\n\n"
-	loginRegisterIndex = 0
-	exitIndex          = 1
+	initLoginRegisterIndex      = 0
+	initExitIndex               = 1
+	initLastElementIndex        = 1
+	initLoginRegisterButtonText = "[ Login / Register ]"
+	initExitButtonTest          = "[ Exit ]"
 )
 
 var (
-	InitChoices = []string{"Login/Register", "Exit"}
+	initLoginRegisterButton        = style.BlurredStyle.Render(initLoginRegisterButtonText)
+	initLoginRegisterButtonFocused = style.FocusedStyle.Render(initLoginRegisterButtonText)
+	initExitButton                 = style.BlurredStyle.Render(initExitButtonTest)
+	initExitButtonFocused          = style.FocusedStyle.Render(initExitButtonTest)
 )
 
 type InitModel struct {
-	choices    []string
 	focusIndex int
 }
 
-// TODO: Сделать стиль как везде
-func NewInitModel(choices []string, cursor int) *InitModel {
+func NewInitModel() *InitModel {
 	return &InitModel{
-		choices:    choices,
-		focusIndex: cursor,
+		focusIndex: 0,
 	}
 }
 
@@ -44,14 +48,14 @@ func (m InitModel) Update(_ tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
 				m.focusIndex--
 			}
 		case "down":
-			if m.focusIndex < len(m.choices)-1 {
+			if m.focusIndex < initLastElementIndex {
 				m.focusIndex++
 			}
 		case "enter":
-			if m.focusIndex == loginRegisterIndex {
-				return NewLoginRegisterModel(), nil
+			if m.focusIndex == initLoginRegisterIndex {
+				return NewAuthModel(), nil
 			}
-			if m.focusIndex == exitIndex {
+			if m.focusIndex == initExitIndex {
 				return m, tea.Quit
 			}
 		}
@@ -60,13 +64,19 @@ func (m InitModel) Update(_ tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
 }
 
 func (m InitModel) View() string {
-	title := initTitleText
-	for i, choice := range m.choices {
-		cursor := " "
-		if i == m.focusIndex {
-			cursor = ">"
-		}
-		title += fmt.Sprintf("%s %s\n", cursor, choice)
+	var b strings.Builder
+
+	loginRegisterBtn := initLoginRegisterButton
+	if m.focusIndex == initLoginRegisterIndex {
+		loginRegisterBtn = initLoginRegisterButtonFocused
 	}
-	return title
+
+	exitBtn := initExitButton
+	if m.focusIndex == initExitIndex {
+		exitBtn = initExitButtonFocused
+	}
+
+	fmt.Fprintf(&b, "\n\n%s\n%s\n\n", loginRegisterBtn, exitBtn)
+
+	return b.String()
 }

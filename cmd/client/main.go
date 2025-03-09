@@ -36,7 +36,7 @@ func main() {
 	secretService := service.NewSecretService(secretServiceClient, encryptionService)
 
 	// Create initial model
-	initModel := model.NewInitModel(model.InitChoices, 0)
+	initModel := model.NewInitModel()
 
 	// Create tui context with all dependencies
 	appContext := tui.NewTUIContext(initModel, userService, secretService)

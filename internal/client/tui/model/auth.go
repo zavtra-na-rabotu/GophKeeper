@@ -11,105 +11,115 @@ import (
 )
 
 const (
-	loginInputIndex     = 0
-	passwordInputIndex  = 1
-	loginButtonIndex    = 2
-	registerButtonIndex = 3
-	loginLimit          = 255
-	passwordLimit       = 50
+	authLastElementIndex    = 4
+	authLastInputIndex      = 1
+	authLoginInputIndex     = 0
+	authPasswordInputIndex  = 1
+	authLoginButtonIndex    = 2
+	authRegisterButtonIndex = 3
+	authBackButtonIndex     = 4
+	authLoginLimit          = 255
+	authPasswordLimit       = 50
+	authLoginButtonText     = "[ Login ]"
+	authRegisterButtonText  = "[ Register ]"
+	authBackButtonText      = "[ Back ]"
 )
 
 var (
-	cursorStyle           = style.FocusedStyle
-	registerButton        = fmt.Sprintf("[ %s ]", style.BlurredStyle.Render("Register"))
-	registerButtonFocused = style.FocusedStyle.Render("[ Register ]")
-	loginButton           = fmt.Sprintf("[ %s ]", style.BlurredStyle.Render("Login"))
-	loginButtonFocused    = style.FocusedStyle.Render("[ Login ]")
+	authLoginButton           = style.BlurredStyle.Render(authLoginButtonText)
+	authLoginButtonFocused    = style.FocusedStyle.Render(authLoginButtonText)
+	authRegisterButton        = style.BlurredStyle.Render(authRegisterButtonText)
+	authRegisterButtonFocused = style.FocusedStyle.Render(authRegisterButtonText)
+	authBackButton            = style.BlurredStyle.Render(authBackButtonText)
+	authBackButtonFocused     = style.FocusedStyle.Render(authBackButtonText)
 )
 
-type LoginRegisterModel struct {
+type AuthModel struct {
 	focusIndex int
 	inputs     []textinput.Model
 	error      string
 }
 
-func NewLoginRegisterModel() LoginRegisterModel {
-	m := LoginRegisterModel{
+func NewAuthModel() AuthModel {
+	m := AuthModel{
 		inputs: make([]textinput.Model, 2),
 	}
 
 	loginInput := helpers.NewInput(helpers.InputSettings{
 		Placeholder: "Login",
 		Focus:       true,
-		CharLimit:   loginLimit,
+		CharLimit:   authLoginLimit,
 		Style:       style.FocusedStyle,
 	})
 
 	passwordInput := helpers.NewInput(helpers.InputSettings{
 		Placeholder: "Password",
 		Focus:       false,
-		CharLimit:   passwordLimit,
+		CharLimit:   authPasswordLimit,
 	})
 	passwordInput.EchoMode = textinput.EchoPassword
 	passwordInput.EchoCharacter = '•'
 
-	m.inputs[loginInputIndex] = loginInput
-	m.inputs[passwordInputIndex] = passwordInput
+	m.inputs[authLoginInputIndex] = loginInput
+	m.inputs[authPasswordInputIndex] = passwordInput
 
 	return m
 }
 
-func (m LoginRegisterModel) Init() tea.Cmd {
+func (m AuthModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m LoginRegisterModel) Update(app tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
+func (m AuthModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		// TODO: Сделать возврат на init menu
-
 		case "ctrl+c", "esc":
-			return NewInitModel(InitChoices, 0), nil
+			return NewInitModel(), nil
 
-		// Set focus to next input
-		case "tab", "shift+tab", "enter", "up", "down":
-			s := msg.String()
-
+		case "enter":
 			// Handle login button
-			if s == "enter" && m.focusIndex == loginButtonIndex {
-				err := m.loginUser(app)
+			if m.focusIndex == authLoginButtonIndex {
+				err := m.loginUser(ctx)
 				if err != nil {
 					m.error = err.Error()
 				} else {
-					return NewMainModel(app), nil
+					return NewMainModel(ctx), nil
 				}
 			}
 
 			// Handle register button
-			if s == "enter" && m.focusIndex == registerButtonIndex {
-				err := m.registerUser(app)
+			if m.focusIndex == authRegisterButtonIndex {
+				err := m.registerUser(ctx)
 				if err != nil {
 					m.error = err.Error()
 				} else {
-					return NewMainModel(app), nil
+					return NewMainModel(ctx), nil
 				}
 			}
 
-			if s == "up" || s == "shift+tab" {
+			// Handle back button
+			if m.focusIndex == authBackButtonIndex {
+				return NewInitModel(), nil
+			}
+
+		case "up", "down":
+			s := msg.String()
+
+			if s == "up" {
 				m.focusIndex--
 			} else {
 				m.focusIndex++
 			}
 
-			if m.focusIndex > len(m.inputs)+1 {
+			if m.focusIndex > authLastElementIndex {
 				m.focusIndex = 0
 			} else if m.focusIndex < 0 {
-				m.focusIndex = len(m.inputs)
+				m.focusIndex = authLastElementIndex
 			}
 
 			cmds := make([]tea.Cmd, len(m.inputs))
-			for i := 0; i <= len(m.inputs)-1; i++ {
+			for i := 0; i <= authLastInputIndex; i++ {
 				if i == m.focusIndex {
 					// Set focused state
 					cmds[i] = m.inputs[i].Focus()
@@ -132,7 +142,7 @@ func (m LoginRegisterModel) Update(app tui.TUIContext, msg tea.Msg) (tui.Model, 
 	return m, cmd
 }
 
-func (m LoginRegisterModel) updateInputs(msg tea.Msg) tea.Cmd {
+func (m AuthModel) updateInputs(msg tea.Msg) tea.Cmd {
 	cmds := make([]tea.Cmd, len(m.inputs))
 
 	for i := range m.inputs {
@@ -142,27 +152,34 @@ func (m LoginRegisterModel) updateInputs(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m LoginRegisterModel) View() string {
+func (m AuthModel) View() string {
 	var b strings.Builder
 
+	// Render inputs
 	for i := range m.inputs {
 		b.WriteString(m.inputs[i].View())
-		if i < len(m.inputs)-1 {
+		if i < authLastInputIndex {
 			b.WriteRune('\n')
 		}
 	}
 
-	logButton := &loginButton
-	if m.focusIndex == loginButtonIndex {
-		logButton = &loginButtonFocused
+	// Render buttons
+	loginBtn := authLoginButton
+	if m.focusIndex == authLoginButtonIndex {
+		loginBtn = authLoginButtonFocused
 	}
 
-	regButton := &registerButton
-	if m.focusIndex == registerButtonIndex {
-		regButton = &registerButtonFocused
+	regisgerBtn := authRegisterButton
+	if m.focusIndex == authRegisterButtonIndex {
+		regisgerBtn = authRegisterButtonFocused
 	}
 
-	fmt.Fprintf(&b, "\n\n%s\n%s\n\n", *logButton, *regButton)
+	backBtn := authBackButton
+	if m.focusIndex == authBackButtonIndex {
+		backBtn = authBackButtonFocused
+	}
+
+	fmt.Fprintf(&b, "\n\n%s\n%s\n%s\n\n", loginBtn, regisgerBtn, backBtn)
 
 	if len(m.error) > 0 {
 		b.WriteString(style.ErrorStyle.Render(m.error))
@@ -171,7 +188,7 @@ func (m LoginRegisterModel) View() string {
 	return b.String()
 }
 
-func (m LoginRegisterModel) loginUser(ctx tui.TUIContext) error {
+func (m AuthModel) loginUser(ctx tui.TUIContext) error {
 	token, err := ctx.UserService.Login(m.inputs[0].Value(), m.inputs[1].Value())
 	if err != nil {
 		return err
@@ -183,7 +200,7 @@ func (m LoginRegisterModel) loginUser(ctx tui.TUIContext) error {
 	return nil
 }
 
-func (m LoginRegisterModel) registerUser(ctx tui.TUIContext) error {
+func (m AuthModel) registerUser(ctx tui.TUIContext) error {
 	token, err := ctx.UserService.Register(m.inputs[0].Value(), m.inputs[1].Value())
 	if err != nil {
 		return err

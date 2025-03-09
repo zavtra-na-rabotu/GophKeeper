@@ -42,8 +42,10 @@ func (m MainModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
+
+		// TODO: Create back button
 		case "ctrl+c", "q":
-			return NewInitModel(InitChoices, 0), nil
+			return NewInitModel(), nil
 		case "up":
 			if m.focusIndex > 1 {
 				m.focusIndex--
