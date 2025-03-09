@@ -54,6 +54,8 @@ func (m MainModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) 
 			if m.focusIndex < len(m.table)-1 {
 				m.focusIndex++
 			}
+		case "a":
+			return NewAddModel(), nil
 		//case "a":
 		//	//TODO: CreateSecretScreen
 		//case "e":

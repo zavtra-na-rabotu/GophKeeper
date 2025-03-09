@@ -1,35 +1,33 @@
 package model
 
 import (
-	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/components"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/style"
 	"strings"
 )
 
 const (
-	initLoginRegisterIndex      = 0
-	initExitIndex               = 1
-	initLastElementIndex        = 1
-	initLoginRegisterButtonText = "[ Login / Register ]"
-	initExitButtonTest          = "[ Exit ]"
-)
-
-var (
-	initLoginRegisterButton        = style.BlurredStyle.Render(initLoginRegisterButtonText)
-	initLoginRegisterButtonFocused = style.FocusedStyle.Render(initLoginRegisterButtonText)
-	initExitButton                 = style.BlurredStyle.Render(initExitButtonTest)
-	initExitButtonFocused          = style.FocusedStyle.Render(initExitButtonTest)
+	initAuthIndex        = 0
+	initExitIndex        = 1
+	initLastElementIndex = 1
+	initAuthButtonText   = "[ Login / Register ]"
+	initExitButtonText   = "[ Exit ]"
 )
 
 type InitModel struct {
 	focusIndex int
+	buttons    []*components.Button
 }
 
 func NewInitModel() *InitModel {
 	return &InitModel{
 		focusIndex: 0,
+		buttons: []*components.Button{
+			{initAuthIndex, initAuthButtonText},
+			{initExitIndex, initExitButtonText},
+		},
 	}
 }
 
@@ -52,7 +50,7 @@ func (m InitModel) Update(_ tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
 				m.focusIndex++
 			}
 		case "enter":
-			if m.focusIndex == initLoginRegisterIndex {
+			if m.focusIndex == initAuthIndex {
 				return NewAuthModel(), nil
 			}
 			if m.focusIndex == initExitIndex {
@@ -66,17 +64,13 @@ func (m InitModel) Update(_ tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
 func (m InitModel) View() string {
 	var b strings.Builder
 
-	loginRegisterBtn := initLoginRegisterButton
-	if m.focusIndex == initLoginRegisterIndex {
-		loginRegisterBtn = initLoginRegisterButtonFocused
+	for _, btn := range m.buttons {
+		btnStyle := style.BlurredStyle
+		if m.focusIndex == btn.Index {
+			btnStyle = style.FocusedStyle
+		}
+		b.WriteString(btnStyle.Render(btn.Text) + "\n")
 	}
-
-	exitBtn := initExitButton
-	if m.focusIndex == initExitIndex {
-		exitBtn = initExitButtonFocused
-	}
-
-	fmt.Fprintf(&b, "\n\n%s\n%s\n\n", loginRegisterBtn, exitBtn)
 
 	return b.String()
 }

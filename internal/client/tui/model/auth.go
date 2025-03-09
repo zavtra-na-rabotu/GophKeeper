@@ -1,11 +1,10 @@
 package model
 
 import (
-	"fmt"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui"
-	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/helpers"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/components"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/style"
 	"strings"
 )
@@ -25,34 +24,32 @@ const (
 	authBackButtonText      = "[ Back ]"
 )
 
-var (
-	authLoginButton           = style.BlurredStyle.Render(authLoginButtonText)
-	authLoginButtonFocused    = style.FocusedStyle.Render(authLoginButtonText)
-	authRegisterButton        = style.BlurredStyle.Render(authRegisterButtonText)
-	authRegisterButtonFocused = style.FocusedStyle.Render(authRegisterButtonText)
-	authBackButton            = style.BlurredStyle.Render(authBackButtonText)
-	authBackButtonFocused     = style.FocusedStyle.Render(authBackButtonText)
-)
-
 type AuthModel struct {
 	focusIndex int
-	inputs     []textinput.Model
 	error      string
+	buttons    []*components.Button
+	inputs     []textinput.Model
 }
 
 func NewAuthModel() AuthModel {
 	m := AuthModel{
-		inputs: make([]textinput.Model, 2),
+		focusIndex: 0,
+		inputs:     make([]textinput.Model, 2),
+		buttons: []*components.Button{
+			{authLoginButtonIndex, authLoginButtonText},
+			{authRegisterButtonIndex, authRegisterButtonText},
+			{authBackButtonIndex, authBackButtonText},
+		},
 	}
 
-	loginInput := helpers.NewInput(helpers.InputSettings{
+	loginInput := components.NewInput(components.InputSettings{
 		Placeholder: "Login",
 		Focus:       true,
 		CharLimit:   authLoginLimit,
 		Style:       style.FocusedStyle,
 	})
 
-	passwordInput := helpers.NewInput(helpers.InputSettings{
+	passwordInput := components.NewInput(components.InputSettings{
 		Placeholder: "Password",
 		Focus:       false,
 		CharLimit:   authPasswordLimit,
@@ -163,23 +160,15 @@ func (m AuthModel) View() string {
 		}
 	}
 
-	// Render buttons
-	loginBtn := authLoginButton
-	if m.focusIndex == authLoginButtonIndex {
-		loginBtn = authLoginButtonFocused
-	}
+	b.WriteString("\n\n")
 
-	regisgerBtn := authRegisterButton
-	if m.focusIndex == authRegisterButtonIndex {
-		regisgerBtn = authRegisterButtonFocused
+	for _, btn := range m.buttons {
+		btnStyle := style.BlurredStyle
+		if m.focusIndex == btn.Index {
+			btnStyle = style.FocusedStyle
+		}
+		b.WriteString(btnStyle.Render(btn.Text) + "\n")
 	}
-
-	backBtn := authBackButton
-	if m.focusIndex == authBackButtonIndex {
-		backBtn = authBackButtonFocused
-	}
-
-	fmt.Fprintf(&b, "\n\n%s\n%s\n%s\n\n", loginBtn, regisgerBtn, backBtn)
 
 	if len(m.error) > 0 {
 		b.WriteString(style.ErrorStyle.Render(m.error))
