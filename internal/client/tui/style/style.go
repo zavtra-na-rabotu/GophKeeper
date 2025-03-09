@@ -12,8 +12,8 @@ const (
 
 var (
 	ErrorStyle = lipgloss.NewStyle().
-		Background(Red).
-		Foreground(White)
+			Background(Red).
+			Foreground(White)
 
 	FocusedStyle = lipgloss.NewStyle().Foreground(Focused)
 

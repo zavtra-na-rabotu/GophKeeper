@@ -70,7 +70,7 @@ func (m LoginRegisterModel) Update(app tui.TUIContext, msg tea.Msg) (tui.Model, 
 		// TODO: Сделать возврат на init menu
 
 		case "ctrl+c", "esc":
-			return NewInitModel(Choices, 0), nil
+			return NewInitModel(InitChoices, 0), nil
 
 		// Set focus to next input
 		case "tab", "shift+tab", "enter", "up", "down":

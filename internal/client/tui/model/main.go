@@ -13,7 +13,6 @@ import (
 )
 
 var (
-	// Стили
 	headerStyle   = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("15"))
 	selectedStyle = lipgloss.NewStyle().Background(lipgloss.Color("8")).Foreground(lipgloss.Color("15"))
 )
@@ -27,11 +26,9 @@ type MainModel struct {
 func NewMainModel(ctx tui.TUIContext) MainModel {
 	mainModel := MainModel{
 		focusIndex: 0,
-		table: [][]string{
-			{"ID", "TITLE", "TYPE", "CREATED", "UPDATED"},
-		},
 	}
 
+	mainModel.resetTable()
 	mainModel.getSecrets(ctx)
 
 	return mainModel
@@ -46,7 +43,7 @@ func (m MainModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) 
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
-			return NewInitModel(Choices, 0), nil
+			return NewInitModel(InitChoices, 0), nil
 		case "up":
 			if m.focusIndex > 1 {
 				m.focusIndex--
@@ -99,7 +96,7 @@ func (m *MainModel) getSecrets(ctx tui.TUIContext) {
 		return
 	}
 
-	m.table = nil
+	m.resetTable()
 
 	for _, secret := range secrets {
 		secretType, err := model.ProtoToGoSecretType(secret.Type)
@@ -122,5 +119,11 @@ func (m MainModel) deleteSecret(ctx tui.TUIContext, secretID uint64) {
 	err := ctx.SecretService.DeleteSecretById(secretID)
 	if err != nil {
 		m.error = err.Error()
+	}
+}
+
+func (m *MainModel) resetTable() {
+	m.table = [][]string{
+		{"ID", "TITLE", "TYPE", "CREATED", "UPDATED"},
 	}
 }

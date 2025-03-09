@@ -6,38 +6,24 @@ import (
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui"
 )
 
-const (
-	initTitleText      = "Choose using arrow keys and 'Enter':\n\n"
-	loginRegisterIndex = 0
-	exitIndex          = 1
-)
-
 var (
-	InitChoices = []string{"Login/Register", "Exit"}
+	CreateChoices = []string{"Add credentials", "Add text", "Add binary", "Add card"}
 )
 
-type InitModel struct {
+type CreateModel struct {
 	choices    []string
 	focusIndex int
 }
 
-// TODO: Сделать стиль как везде
-func NewInitModel(choices []string, cursor int) *InitModel {
-	return &InitModel{
-		choices:    choices,
-		focusIndex: cursor,
-	}
-}
-
-func (m InitModel) Init() tea.Cmd {
+func (m CreateModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m InitModel) Update(_ tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
+func (m CreateModel) Update(_ tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
+		case "q":
 			return m, tea.Quit
 		case "up":
 			if m.focusIndex > 0 {
@@ -48,18 +34,15 @@ func (m InitModel) Update(_ tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
 				m.focusIndex++
 			}
 		case "enter":
-			if m.focusIndex == loginRegisterIndex {
+			if m.focusIndex == 0 {
 				return NewLoginRegisterModel(), nil
-			}
-			if m.focusIndex == exitIndex {
-				return m, tea.Quit
 			}
 		}
 	}
 	return m, nil
 }
 
-func (m InitModel) View() string {
+func (m CreateModel) View() string {
 	title := initTitleText
 	for i, choice := range m.choices {
 		cursor := " "
