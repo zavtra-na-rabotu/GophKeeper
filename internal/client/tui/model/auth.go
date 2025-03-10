@@ -10,8 +10,6 @@ import (
 )
 
 const (
-	authLastElementIndex    = 4
-	authLastInputIndex      = 1
 	authLoginInputIndex     = 0
 	authPasswordInputIndex  = 1
 	authLoginButtonIndex    = 2
@@ -21,7 +19,8 @@ const (
 	authPasswordLimit       = 50
 	authLoginButtonText     = "[ Login ]"
 	authRegisterButtonText  = "[ Register ]"
-	authBackButtonText      = "[ Back ]"
+	authLoginInputText      = "Login"
+	authPasswordInputText   = "Password"
 )
 
 type AuthModel struct {
@@ -34,31 +33,19 @@ type AuthModel struct {
 func NewAuthModel() AuthModel {
 	m := AuthModel{
 		focusIndex: 0,
-		inputs:     make([]textinput.Model, 2),
+		inputs: []textinput.Model{
+			components.NewInput(components.InputSettings{Placeholder: authLoginInputText, Focus: true, CharLimit: authLoginLimit, Style: style.FocusedStyle}),
+			components.NewInput(components.InputSettings{Placeholder: authPasswordInputText, CharLimit: authPasswordLimit}),
+		},
 		buttons: []*components.Button{
 			{authLoginButtonIndex, authLoginButtonText},
 			{authRegisterButtonIndex, authRegisterButtonText},
-			{authBackButtonIndex, authBackButtonText},
+			{authBackButtonIndex, components.BackButtonText},
 		},
 	}
 
-	loginInput := components.NewInput(components.InputSettings{
-		Placeholder: "Login",
-		Focus:       true,
-		CharLimit:   authLoginLimit,
-		Style:       style.FocusedStyle,
-	})
-
-	passwordInput := components.NewInput(components.InputSettings{
-		Placeholder: "Password",
-		Focus:       false,
-		CharLimit:   authPasswordLimit,
-	})
-	passwordInput.EchoMode = textinput.EchoPassword
-	passwordInput.EchoCharacter = '•'
-
-	m.inputs[authLoginInputIndex] = loginInput
-	m.inputs[authPasswordInputIndex] = passwordInput
+	m.inputs[authPasswordInputIndex].EchoMode = textinput.EchoPassword
+	m.inputs[authPasswordInputIndex].EchoCharacter = '•'
 
 	return m
 }
@@ -71,8 +58,8 @@ func (m AuthModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "esc":
-			return NewInitModel(), nil
+		//case "ctrl+c", "esc":
+		//	return NewInitModel(), nil
 
 		case "enter":
 			// Handle login button
@@ -100,43 +87,44 @@ func (m AuthModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) 
 				return NewInitModel(), nil
 			}
 
-		case "up", "down":
-			s := msg.String()
-
-			if s == "up" {
-				m.focusIndex--
-			} else {
-				m.focusIndex++
+		case "up":
+			m.focusIndex--
+			if m.focusIndex < 0 {
+				m.focusIndex = authBackButtonIndex
 			}
+			return m.updateInputStyles()
 
-			if m.focusIndex > authLastElementIndex {
+		case "down":
+			m.focusIndex++
+			if m.focusIndex > authBackButtonIndex {
 				m.focusIndex = 0
-			} else if m.focusIndex < 0 {
-				m.focusIndex = authLastElementIndex
 			}
-
-			cmds := make([]tea.Cmd, len(m.inputs))
-			for i := 0; i <= authLastInputIndex; i++ {
-				if i == m.focusIndex {
-					// Set focused state
-					cmds[i] = m.inputs[i].Focus()
-					m.inputs[i].PromptStyle = style.FocusedStyle
-					m.inputs[i].TextStyle = style.FocusedStyle
-					continue
-				}
-				// Remove focused state
-				m.inputs[i].Blur()
-				m.inputs[i].PromptStyle = style.NoStyle
-				m.inputs[i].TextStyle = style.NoStyle
-			}
-
-			return m, tea.Batch(cmds...)
+			return m.updateInputStyles()
 		}
 	}
 
 	cmd := m.updateInputs(msg)
 
 	return m, cmd
+}
+
+func (m AuthModel) updateInputStyles() (tui.Model, tea.Cmd) {
+	cmds := make([]tea.Cmd, len(m.inputs))
+	for i := range m.inputs {
+		if i == m.focusIndex {
+			// Set focused state
+			cmds[i] = m.inputs[i].Focus()
+			m.inputs[i].PromptStyle = style.FocusedStyle
+			m.inputs[i].TextStyle = style.FocusedStyle
+			continue
+		}
+		// Remove focused state
+		m.inputs[i].Blur()
+		m.inputs[i].PromptStyle = style.NoStyle
+		m.inputs[i].TextStyle = style.NoStyle
+	}
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m AuthModel) updateInputs(msg tea.Msg) tea.Cmd {
@@ -155,13 +143,12 @@ func (m AuthModel) View() string {
 	// Render inputs
 	for i := range m.inputs {
 		b.WriteString(m.inputs[i].View())
-		if i < authLastInputIndex {
-			b.WriteRune('\n')
-		}
+		b.WriteRune('\n')
 	}
 
-	b.WriteString("\n\n")
+	b.WriteRune('\n')
 
+	// Render buttons
 	for _, btn := range m.buttons {
 		btnStyle := style.BlurredStyle
 		if m.focusIndex == btn.Index {
@@ -178,25 +165,25 @@ func (m AuthModel) View() string {
 }
 
 func (m AuthModel) loginUser(ctx tui.TUIContext) error {
-	token, err := ctx.UserService.Login(m.inputs[0].Value(), m.inputs[1].Value())
+	token, err := ctx.UserService.Login(m.inputs[authLoginInputIndex].Value(), m.inputs[authPasswordInputIndex].Value())
 	if err != nil {
 		return err
 	}
 
 	ctx.SecretService.SetToken(token)
-	ctx.SecretService.SetPassword(m.inputs[1].Value())
+	ctx.SecretService.SetPassword(m.inputs[authPasswordInputIndex].Value())
 
 	return nil
 }
 
 func (m AuthModel) registerUser(ctx tui.TUIContext) error {
-	token, err := ctx.UserService.Register(m.inputs[0].Value(), m.inputs[1].Value())
+	token, err := ctx.UserService.Register(m.inputs[authLoginInputIndex].Value(), m.inputs[authPasswordInputIndex].Value())
 	if err != nil {
 		return err
 	}
 
 	ctx.SecretService.SetToken(token)
-	ctx.SecretService.SetPassword(m.inputs[1].Value())
+	ctx.SecretService.SetPassword(m.inputs[authPasswordInputIndex].Value())
 
 	return nil
 }

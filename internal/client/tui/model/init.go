@@ -9,11 +9,10 @@ import (
 )
 
 const (
-	initAuthIndex        = 0
-	initExitIndex        = 1
-	initLastElementIndex = 1
-	initAuthButtonText   = "[ Login / Register ]"
-	initExitButtonText   = "[ Exit ]"
+	initAuthIndex      = 0
+	initExitIndex      = 1
+	initAuthButtonText = "[ Login / Register ]"
+	initExitButtonText = "[ Exit ]"
 )
 
 type InitModel struct {
@@ -46,7 +45,7 @@ func (m InitModel) Update(_ tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
 				m.focusIndex--
 			}
 		case "down":
-			if m.focusIndex < initLastElementIndex {
+			if m.focusIndex < initExitIndex {
 				m.focusIndex++
 			}
 		case "enter":

@@ -9,6 +9,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	"os"
 	"time"
 )
 
@@ -38,7 +39,7 @@ func (s *SecretService) SetToken(token string) {
 	s.token = token
 }
 
-func (s *SecretService) CreateTextSecret(secretTitle string, secretText string, secretMetadata string, password string) error {
+func (s *SecretService) CreateCredentialSecret(secretTitle string, secretLogin string, secretPassword string, secretMetadata string) error {
 	if len(s.token) == 0 {
 		return ErrNoToken
 	}
@@ -46,32 +47,82 @@ func (s *SecretService) CreateTextSecret(secretTitle string, secretText string, 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	ctx = createMetadata(ctx, s.token)
+	ctx = s.createMetadata(ctx, s.token)
+
+	credentialsProto := &pb.Credential{
+		Login:    secretLogin,
+		Password: secretPassword,
+	}
+
+	encryptedContent, err := s.serializeAndEncryptMessage(credentialsProto)
+	if err != nil {
+		return err
+	}
+
+	request := s.createSaveSecretRequest(secretTitle, pb.SecretType_SECRET_TYPE_CREDENTIAL, encryptedContent, secretMetadata)
+
+	_, err = s.secretServiceClient.SaveSecret(ctx, request)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *SecretService) CreateTextSecret(secretTitle string, secretText string, secretMetadata string) error {
+	if len(s.token) == 0 {
+		return ErrNoToken
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	ctx = s.createMetadata(ctx, s.token)
 
 	textProto := &pb.Text{
 		Text: secretText,
 	}
 
-	serializedContent, err := proto.Marshal(textProto)
+	encryptedContent, err := s.serializeAndEncryptMessage(textProto)
 	if err != nil {
 		return err
 	}
 
-	encryptedContent, err := s.encryptionService.Encrypt(serializedContent, password)
+	request := s.createSaveSecretRequest(secretTitle, pb.SecretType_SECRET_TYPE_TEXT, encryptedContent, secretMetadata)
+
+	_, err = s.secretServiceClient.SaveSecret(ctx, request)
 	if err != nil {
 		return err
 	}
 
-	request := &pb.SaveSecretRequest{
-		Secret: &pb.Secret{
-			Title:     secretTitle,
-			Type:      pb.SecretType_SECRET_TYPE_TEXT,
-			Content:   encryptedContent,
-			Metadata:  secretMetadata,
-			CreatedAt: timestamppb.New(time.Now()),
-			UpdatedAt: timestamppb.New(time.Now()),
-		},
+	return nil
+}
+
+func (s *SecretService) CreateBinarySecret(secretTitle string, secretBinaryPath string, secretMetadata string) error {
+	if len(s.token) == 0 {
+		return ErrNoToken
 	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	ctx = s.createMetadata(ctx, s.token)
+
+	data, err := os.ReadFile(secretBinaryPath)
+	if err != nil {
+		return err
+	}
+
+	binaryProto := &pb.Binary{
+		Binary: data,
+	}
+
+	encryptedContent, err := s.serializeAndEncryptMessage(binaryProto)
+	if err != nil {
+		return err
+	}
+
+	request := s.createSaveSecretRequest(secretTitle, pb.SecretType_SECRET_TYPE_BINARY, encryptedContent, secretMetadata)
 
 	_, err = s.secretServiceClient.SaveSecret(ctx, request)
 	if err != nil {
@@ -89,7 +140,7 @@ func (s *SecretService) GetSecrets() ([]*pb.Secret, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	ctx = createMetadata(ctx, s.token)
+	ctx = s.createMetadata(ctx, s.token)
 
 	res, err := s.secretServiceClient.GetSecrets(ctx, &emptypb.Empty{})
 	if err != nil {
@@ -107,7 +158,7 @@ func (s *SecretService) DeleteSecretById(secretID uint64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	ctx = createMetadata(ctx, s.token)
+	ctx = s.createMetadata(ctx, s.token)
 
 	_, err := s.secretServiceClient.DeleteSecret(ctx, &pb.DeleteSecretByIdRequest{Id: secretID})
 	if err != nil {
@@ -117,7 +168,33 @@ func (s *SecretService) DeleteSecretById(secretID uint64) error {
 	return nil
 }
 
-func createMetadata(ctx context.Context, token string) context.Context {
+func (s *SecretService) serializeAndEncryptMessage(message proto.Message) ([]byte, error) {
+	serializedContent, err := proto.Marshal(message)
+	if err != nil {
+		return nil, err
+	}
+
+	encryptedContent, err := s.encryptionService.Encrypt(serializedContent, s.password)
+	if err != nil {
+		return nil, err
+	}
+
+	return encryptedContent, nil
+}
+
+func (s *SecretService) createSaveSecretRequest(secretTitle string, secretType pb.SecretType, secretContent []byte, secretMetadata string) *pb.SaveSecretRequest {
+	return &pb.SaveSecretRequest{Secret: &pb.Secret{
+		Title:     secretTitle,
+		Type:      secretType,
+		Content:   secretContent,
+		Metadata:  secretMetadata,
+		CreatedAt: timestamppb.New(time.Now()),
+		UpdatedAt: timestamppb.New(time.Now()),
+	},
+	}
+}
+
+func (s *SecretService) createMetadata(ctx context.Context, token string) context.Context {
 	md := metadata.New(map[string]string{"jwt": token})
 	ctx = metadata.NewOutgoingContext(ctx, md)
 

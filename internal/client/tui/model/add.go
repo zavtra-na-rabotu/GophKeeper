@@ -9,7 +9,6 @@ import (
 )
 
 const (
-	addLastElementIndex      = 4
 	addCredentialButtonIndex = 0
 	addTextButtonIndex       = 1
 	addBinaryButtonIndex     = 2
@@ -19,7 +18,6 @@ const (
 	addTextButtonText        = "[ Add text ]"
 	addBinaryButtonText      = "[ Add binary ]"
 	addCardButtonText        = "[ Add card ]"
-	addBackButtonText        = "[ Back ]"
 )
 
 type AddModel struct {
@@ -35,7 +33,7 @@ func NewAddModel() *AddModel {
 			{addTextButtonIndex, addTextButtonText},
 			{addBinaryButtonIndex, addBinaryButtonText},
 			{addCardButtonIndex, addCardButtonText},
-			{addBackButtonIndex, addBackButtonText},
+			{addBackButtonIndex, components.BackButtonText},
 		},
 	}
 }
@@ -44,21 +42,35 @@ func (m AddModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m AddModel) Update(_ tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
+func (m AddModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up":
-			if m.focusIndex > 0 {
-				m.focusIndex--
+			m.focusIndex--
+			if m.focusIndex < 0 {
+				m.focusIndex = addBackButtonIndex
 			}
 		case "down":
-			if m.focusIndex < addLastElementIndex {
-				m.focusIndex++
+			m.focusIndex++
+			if m.focusIndex > addBackButtonIndex {
+				m.focusIndex = 0
 			}
 		case "enter":
-			if m.focusIndex == addLastElementIndex {
+			if m.focusIndex == addCredentialButtonIndex {
+				return NewCredentialSecretModel(), nil
+			}
+			if m.focusIndex == addTextButtonIndex {
+				return NewTextSecretModel(), nil
+			}
+			if m.focusIndex == addBinaryButtonIndex {
+				return NewBinarySecretModel(), nil
+			}
+			if m.focusIndex == addCardButtonIndex {
 
+			}
+			if m.focusIndex == addBackButtonIndex {
+				return NewMainModel(ctx), nil
 			}
 		}
 	}

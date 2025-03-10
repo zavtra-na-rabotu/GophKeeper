@@ -10,63 +10,68 @@ import (
 )
 
 const (
-	textSecretTitleInputIndex    = 0
-	textSecretTextInputIndex     = 1
-	textSecretMetadataInputIndex = 2
-	textSecretSubmitButtonIndex  = 3
-	textSecretBackButtonIndex    = 4
-	textSecretTitleInputText     = "Title"
-	textSecretTextInputText      = "Text"
-	textSecretMetadataInputText  = "Metadata"
+	credentialTitleInputIndex    = 0
+	credentialLoginInputIndex    = 1
+	credentialPasswordInputIndex = 2
+	credentialMetadataInputIndex = 3
+	credentialSubmitButtonIndex  = 4
+	credentialBackButtonIndex    = 5
+	credentialTitleInputText     = "Title"
+	credentialLoginInputText     = "Login"
+	credentialPasswordInputText  = "Password"
+	credentialMetadataInputText  = "Metadata"
 )
 
-type TextSecretModel struct {
+type CredentialSecretModel struct {
 	focusIndex int
 	error      string
 	buttons    []*components.Button
 	inputs     []textinput.Model
 }
 
-func NewTextSecretModel() *TextSecretModel {
-	return &TextSecretModel{
+func NewCredentialSecretModel() *CredentialSecretModel {
+	return &CredentialSecretModel{
 		focusIndex: 0,
 		inputs: []textinput.Model{
-			components.NewInput(components.InputSettings{Placeholder: textSecretTitleInputText, Focus: true, Style: style.FocusedStyle}),
-			components.NewInput(components.InputSettings{Placeholder: textSecretTextInputText}),
-			components.NewInput(components.InputSettings{Placeholder: textSecretMetadataInputText}),
+			components.NewInput(components.InputSettings{Placeholder: credentialTitleInputText, Focus: true, Style: style.FocusedStyle}),
+			components.NewInput(components.InputSettings{Placeholder: credentialLoginInputText}),
+			components.NewInput(components.InputSettings{Placeholder: credentialPasswordInputText}),
+			components.NewInput(components.InputSettings{Placeholder: credentialMetadataInputText}),
 		},
 		buttons: []*components.Button{
-			{textSecretSubmitButtonIndex, components.SubmitButtonText},
-			{textSecretBackButtonIndex, components.BackButtonText},
+			{credentialSubmitButtonIndex, components.SubmitButtonText},
+			{credentialBackButtonIndex, components.BackButtonText},
 		},
 	}
 }
 
-func (m *TextSecretModel) Init() tea.Cmd {
+func (m *CredentialSecretModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m *TextSecretModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
+func (m *CredentialSecretModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
-			if m.focusIndex == textSecretSubmitButtonIndex {
+			if m.focusIndex == credentialSubmitButtonIndex {
 				m.addSecret(ctx)
 				return NewMainModel(ctx), nil
 			}
-			if m.focusIndex == textSecretBackButtonIndex {
+			if m.focusIndex == credentialBackButtonIndex {
 				return NewAddModel(), nil
 			}
+
 		case "up":
 			m.focusIndex--
 			if m.focusIndex < 0 {
-				m.focusIndex = textSecretBackButtonIndex
+				m.focusIndex = credentialBackButtonIndex
 			}
 			return m.updateInputStyles()
+
 		case "down":
 			m.focusIndex++
-			if m.focusIndex > textSecretBackButtonIndex {
+			if m.focusIndex > credentialBackButtonIndex {
 				m.focusIndex = 0
 			}
 			return m.updateInputStyles()
@@ -78,16 +83,18 @@ func (m *TextSecretModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, te
 	return m, cmd
 }
 
-func (m *TextSecretModel) updateInputStyles() (tui.Model, tea.Cmd) {
+func (m *CredentialSecretModel) updateInputStyles() (tui.Model, tea.Cmd) {
 	cmds := make([]tea.Cmd, len(m.inputs))
 
 	for i := range m.inputs {
 		if i == m.focusIndex {
+			// Set focused state
 			cmds[i] = m.inputs[i].Focus()
 			m.inputs[i].PromptStyle = style.FocusedStyle
 			m.inputs[i].TextStyle = style.FocusedStyle
 			continue
 		}
+		// Remove focused state
 		m.inputs[i].Blur()
 		m.inputs[i].PromptStyle = style.NoStyle
 		m.inputs[i].TextStyle = style.NoStyle
@@ -96,7 +103,7 @@ func (m *TextSecretModel) updateInputStyles() (tui.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *TextSecretModel) updateInputs(msg tea.Msg) tea.Cmd {
+func (m *CredentialSecretModel) updateInputs(msg tea.Msg) tea.Cmd {
 	cmds := make([]tea.Cmd, len(m.inputs))
 
 	for i := range m.inputs {
@@ -106,9 +113,10 @@ func (m *TextSecretModel) updateInputs(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (m *TextSecretModel) View() string {
+func (m *CredentialSecretModel) View() string {
 	var b strings.Builder
 
+	// Render inputs
 	for i := range m.inputs {
 		b.WriteString(m.inputs[i].View())
 		b.WriteRune('\n')
@@ -116,6 +124,7 @@ func (m *TextSecretModel) View() string {
 
 	b.WriteRune('\n')
 
+	// Render buttons
 	for _, btn := range m.buttons {
 		btnStyle := style.BlurredStyle
 		if m.focusIndex == btn.Index {
@@ -131,11 +140,12 @@ func (m *TextSecretModel) View() string {
 	return b.String()
 }
 
-func (m *TextSecretModel) addSecret(ctx tui.TUIContext) {
-	err := ctx.SecretService.CreateTextSecret(
-		m.inputs[textSecretTitleInputIndex].Value(),
-		m.inputs[textSecretTextInputIndex].Value(),
-		m.inputs[textSecretMetadataInputIndex].Value(),
+func (m *CredentialSecretModel) addSecret(ctx tui.TUIContext) {
+	err := ctx.SecretService.CreateCredentialSecret(
+		m.inputs[credentialTitleInputIndex].Value(),
+		m.inputs[credentialLoginInputIndex].Value(),
+		m.inputs[credentialPasswordInputIndex].Value(),
+		m.inputs[credentialMetadataInputIndex].Value(),
 	)
 
 	if err != nil {
