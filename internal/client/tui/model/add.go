@@ -69,7 +69,7 @@ func (m AddModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return NewBinarySecretModel(m.ctx), nil
 			}
 			if m.focusIndex == addCardButtonIndex {
-
+				return NewCardSecretModel(m.ctx), nil
 			}
 			if m.focusIndex == addBackButtonIndex {
 				return NewMainModel(m.ctx), nil

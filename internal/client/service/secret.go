@@ -132,6 +132,39 @@ func (s *SecretService) CreateBinarySecret(secretTitle string, secretBinaryPath 
 	return nil
 }
 
+func (s *SecretService) CreateCardSecret(secretTitle string, cardNumber string, cardExpiryMonth string, cardExpiryYear string, cardCsc string, cardName string, secretMetadata string) error {
+	if len(s.token) == 0 {
+		return ErrNoToken
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	ctx = s.createMetadata(ctx, s.token)
+
+	binaryProto := &pb.Card{
+		Number:      cardNumber,
+		ExpiryMonth: cardExpiryMonth,
+		ExpiryYear:  cardExpiryYear,
+		Csc:         cardCsc,
+		Name:        cardName,
+	}
+
+	encryptedContent, err := s.serializeAndEncryptMessage(binaryProto)
+	if err != nil {
+		return err
+	}
+
+	request := s.createSaveSecretRequest(secretTitle, pb.SecretType_SECRET_TYPE_CARD, encryptedContent, secretMetadata)
+
+	_, err = s.secretServiceClient.SaveSecret(ctx, request)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *SecretService) GetSecrets() ([]*pb.Secret, error) {
 	if len(s.token) == 0 {
 		return nil, ErrNoToken

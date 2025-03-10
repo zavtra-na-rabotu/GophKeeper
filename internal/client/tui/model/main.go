@@ -58,8 +58,6 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "a":
 			return NewAddModel(m.ctx), nil
-		//case "a":
-		//	//TODO: CreateSecretScreen
 		//case "e":
 		//// TODO: EditSecretScreen
 		case "d":
