@@ -29,6 +29,7 @@ type CredentialSecretModel struct {
 	buttons    []*components.Button
 	inputs     []textinput.Model
 	ctx        *tui.TUIContext
+	secretID   uint64
 }
 
 func NewCredentialSecretModel(ctx *tui.TUIContext, secret *pb.Secret, content *pb.Credential) *CredentialSecretModel {
@@ -46,8 +47,9 @@ func NewCredentialSecretModel(ctx *tui.TUIContext, secret *pb.Secret, content *p
 		},
 		ctx: ctx,
 	}
-	
+
 	if secret != nil {
+		model.secretID = secret.GetId()
 		model.inputs[credentialTitleInputIndex].SetValue(secret.GetTitle())
 		model.inputs[credentialMetadataInputIndex].SetValue(secret.GetMetadata())
 	}
@@ -157,6 +159,7 @@ func (m *CredentialSecretModel) View() string {
 
 func (m *CredentialSecretModel) addSecret(ctx *tui.TUIContext) {
 	err := ctx.SecretService.CreateCredentialSecret(
+		m.secretID,
 		m.inputs[credentialTitleInputIndex].Value(),
 		m.inputs[credentialLoginInputIndex].Value(),
 		m.inputs[credentialPasswordInputIndex].Value(),

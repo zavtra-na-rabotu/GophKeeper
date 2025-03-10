@@ -15,7 +15,7 @@ func NewSecretRepository(db *sql.DB) *SecretRepository {
 	return &SecretRepository{db: db}
 }
 
-func (r *SecretRepository) Save(ctx context.Context, secret *model.Secret) (int, error) {
+func (r *SecretRepository) Create(ctx context.Context, secret *model.Secret) (int, error) {
 	row := r.db.QueryRowContext(
 		ctx,
 		`INSERT INTO secrets (user_id, title, type, content, metadata, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
@@ -35,6 +35,24 @@ func (r *SecretRepository) Save(ctx context.Context, secret *model.Secret) (int,
 	}
 
 	return secretID, nil
+}
+
+func (r *SecretRepository) Update(ctx context.Context, secret *model.Secret) error {
+	_, err := r.db.ExecContext(
+		ctx,
+		`UPDATE secrets SET title = $1, content = $2, metadata = $3, updated_at = $4 WHERE id = $5 AND user_id = $6`,
+		secret.Title,
+		secret.Content,
+		secret.Metadata,
+		secret.UpdatedAt,
+		secret.ID,
+		secret.UserID,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *SecretRepository) GetAllByUserID(ctx context.Context, userID uint64) ([]*model.Secret, error) {

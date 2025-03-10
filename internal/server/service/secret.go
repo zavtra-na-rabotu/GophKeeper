@@ -31,7 +31,11 @@ func (s *SecretService) Save(ctx context.Context, request *pb.SaveSecretRequest)
 
 	secret.UserID = userID.(uint64)
 
-	_, err = s.secretRepository.Save(ctx, secret)
+	if secret.ID > 0 {
+		err = s.secretRepository.Update(ctx, secret)
+	} else {
+		_, err = s.secretRepository.Create(ctx, secret)
+	}
 	if err != nil {
 		zap.L().Error("Failed to save secret", zap.Error(err))
 		return fmt.Errorf("failed to save secret: %w", err)

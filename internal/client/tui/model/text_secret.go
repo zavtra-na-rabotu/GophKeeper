@@ -27,6 +27,7 @@ type TextSecretModel struct {
 	buttons    []*components.Button
 	inputs     []textinput.Model
 	ctx        *tui.TUIContext
+	secretID   uint64
 }
 
 func NewTextSecretModel(ctx *tui.TUIContext, secret *pb.Secret, content *pb.Text) *TextSecretModel {
@@ -45,6 +46,7 @@ func NewTextSecretModel(ctx *tui.TUIContext, secret *pb.Secret, content *pb.Text
 	}
 
 	if secret != nil {
+		model.secretID = secret.Id
 		model.inputs[textSecretTitleInputIndex].SetValue(secret.GetTitle())
 		model.inputs[textSecretMetadataInputIndex].SetValue(secret.GetMetadata())
 	}
@@ -147,6 +149,7 @@ func (m *TextSecretModel) View() string {
 
 func (m *TextSecretModel) addSecret(ctx *tui.TUIContext) {
 	err := ctx.SecretService.CreateTextSecret(
+		m.secretID,
 		m.inputs[textSecretTitleInputIndex].Value(),
 		m.inputs[textSecretTextInputIndex].Value(),
 		m.inputs[textSecretMetadataInputIndex].Value(),

@@ -39,7 +39,7 @@ func (s *SecretService) SetToken(token string) {
 	s.token = token
 }
 
-func (s *SecretService) CreateCredentialSecret(secretTitle string, secretLogin string, secretPassword string, secretMetadata string) error {
+func (s *SecretService) CreateCredentialSecret(secretID uint64, secretTitle string, secretLogin string, secretPassword string, secretMetadata string) error {
 	if len(s.token) == 0 {
 		return ErrNoToken
 	}
@@ -59,7 +59,7 @@ func (s *SecretService) CreateCredentialSecret(secretTitle string, secretLogin s
 		return err
 	}
 
-	request := s.createSaveSecretRequest(secretTitle, pb.SecretType_SECRET_TYPE_CREDENTIAL, encryptedContent, secretMetadata)
+	request := s.createSaveSecretRequest(secretID, secretTitle, pb.SecretType_SECRET_TYPE_CREDENTIAL, encryptedContent, secretMetadata)
 
 	_, err = s.secretServiceClient.SaveSecret(ctx, request)
 	if err != nil {
@@ -69,7 +69,7 @@ func (s *SecretService) CreateCredentialSecret(secretTitle string, secretLogin s
 	return nil
 }
 
-func (s *SecretService) CreateTextSecret(secretTitle string, secretText string, secretMetadata string) error {
+func (s *SecretService) CreateTextSecret(secretID uint64, secretTitle string, secretText string, secretMetadata string) error {
 	if len(s.token) == 0 {
 		return ErrNoToken
 	}
@@ -88,7 +88,7 @@ func (s *SecretService) CreateTextSecret(secretTitle string, secretText string, 
 		return err
 	}
 
-	request := s.createSaveSecretRequest(secretTitle, pb.SecretType_SECRET_TYPE_TEXT, encryptedContent, secretMetadata)
+	request := s.createSaveSecretRequest(secretID, secretTitle, pb.SecretType_SECRET_TYPE_TEXT, encryptedContent, secretMetadata)
 
 	_, err = s.secretServiceClient.SaveSecret(ctx, request)
 	if err != nil {
@@ -98,7 +98,7 @@ func (s *SecretService) CreateTextSecret(secretTitle string, secretText string, 
 	return nil
 }
 
-func (s *SecretService) CreateBinarySecret(secretTitle string, secretBinaryPath string, secretMetadata string) error {
+func (s *SecretService) CreateBinarySecret(secretID uint64, secretTitle string, secretBinaryPath string, secretMetadata string) error {
 	if len(s.token) == 0 {
 		return ErrNoToken
 	}
@@ -122,7 +122,7 @@ func (s *SecretService) CreateBinarySecret(secretTitle string, secretBinaryPath 
 		return err
 	}
 
-	request := s.createSaveSecretRequest(secretTitle, pb.SecretType_SECRET_TYPE_BINARY, encryptedContent, secretMetadata)
+	request := s.createSaveSecretRequest(secretID, secretTitle, pb.SecretType_SECRET_TYPE_BINARY, encryptedContent, secretMetadata)
 
 	_, err = s.secretServiceClient.SaveSecret(ctx, request)
 	if err != nil {
@@ -132,7 +132,7 @@ func (s *SecretService) CreateBinarySecret(secretTitle string, secretBinaryPath 
 	return nil
 }
 
-func (s *SecretService) CreateCardSecret(secretTitle string, cardNumber string, cardExpiryMonth string, cardExpiryYear string, cardCsc string, cardName string, secretMetadata string) error {
+func (s *SecretService) CreateCardSecret(secretID uint64, secretTitle string, cardNumber string, cardExpiryMonth string, cardExpiryYear string, cardCsc string, cardName string, secretMetadata string) error {
 	if len(s.token) == 0 {
 		return ErrNoToken
 	}
@@ -155,7 +155,7 @@ func (s *SecretService) CreateCardSecret(secretTitle string, cardNumber string, 
 		return err
 	}
 
-	request := s.createSaveSecretRequest(secretTitle, pb.SecretType_SECRET_TYPE_CARD, encryptedContent, secretMetadata)
+	request := s.createSaveSecretRequest(secretID, secretTitle, pb.SecretType_SECRET_TYPE_CARD, encryptedContent, secretMetadata)
 
 	_, err = s.secretServiceClient.SaveSecret(ctx, request)
 	if err != nil {
@@ -243,15 +243,17 @@ func (s *SecretService) marshalAndEncryptMessage(message proto.Message) ([]byte,
 	return encryptedContent, nil
 }
 
-func (s *SecretService) createSaveSecretRequest(secretTitle string, secretType pb.SecretType, secretContent []byte, secretMetadata string) *pb.SaveSecretRequest {
-	return &pb.SaveSecretRequest{Secret: &pb.Secret{
-		Title:     secretTitle,
-		Type:      secretType,
-		Content:   secretContent,
-		Metadata:  secretMetadata,
-		CreatedAt: timestamppb.New(time.Now()),
-		UpdatedAt: timestamppb.New(time.Now()),
-	},
+func (s *SecretService) createSaveSecretRequest(secretID uint64, secretTitle string, secretType pb.SecretType, secretContent []byte, secretMetadata string) *pb.SaveSecretRequest {
+	return &pb.SaveSecretRequest{
+		Secret: &pb.Secret{
+			Id:        secretID,
+			Title:     secretTitle,
+			Type:      secretType,
+			Content:   secretContent,
+			Metadata:  secretMetadata,
+			CreatedAt: timestamppb.New(time.Now()),
+			UpdatedAt: timestamppb.New(time.Now()),
+		},
 	}
 }
 

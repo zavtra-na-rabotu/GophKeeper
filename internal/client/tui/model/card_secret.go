@@ -35,6 +35,7 @@ type CardSecretModel struct {
 	buttons    []*components.Button
 	inputs     []textinput.Model
 	ctx        *tui.TUIContext
+	secretID   uint64
 }
 
 func NewCardSecretModel(ctx *tui.TUIContext, secret *pb.Secret, content *pb.Card) *CardSecretModel {
@@ -57,6 +58,7 @@ func NewCardSecretModel(ctx *tui.TUIContext, secret *pb.Secret, content *pb.Card
 	}
 
 	if secret != nil {
+		model.secretID = secret.Id
 		model.inputs[cardSecretTitleInputIndex].SetValue(secret.GetTitle())
 		model.inputs[cardSecretMetadataInputIndex].SetValue(secret.GetMetadata())
 	}
@@ -163,6 +165,7 @@ func (m *CardSecretModel) View() string {
 
 func (m *CardSecretModel) addSecret(ctx *tui.TUIContext) {
 	err := ctx.SecretService.CreateCardSecret(
+		m.secretID,
 		m.inputs[cardSecretTitleInputIndex].Value(),
 		m.inputs[cardSecretNumberInputIndex].Value(),
 		m.inputs[cardSecretExpiryMonthInputIndex].Value(),

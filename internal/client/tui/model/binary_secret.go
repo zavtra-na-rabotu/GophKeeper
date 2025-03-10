@@ -28,6 +28,7 @@ type BinarySecretModel struct {
 	inputs     []textinput.Model
 	filePath   string
 	ctx        *tui.TUIContext
+	secretID   uint64
 }
 
 func NewBinarySecretModel(ctx *tui.TUIContext, secret *pb.Secret, content *pb.Binary) *BinarySecretModel {
@@ -46,6 +47,7 @@ func NewBinarySecretModel(ctx *tui.TUIContext, secret *pb.Secret, content *pb.Bi
 	}
 
 	if secret != nil {
+		model.secretID = secret.Id
 		model.inputs[binarySecretTitleInputIndex].SetValue(secret.GetTitle())
 		model.inputs[binarySecretMetadataInputIndex].SetValue(secret.GetMetadata())
 	}
@@ -155,6 +157,7 @@ func (m *BinarySecretModel) View() string {
 
 func (m *BinarySecretModel) addSecret(ctx *tui.TUIContext) {
 	err := ctx.SecretService.CreateBinarySecret(
+		m.secretID,
 		m.inputs[binarySecretTitleInputIndex].Value(),
 		m.filePath,
 		m.inputs[binarySecretMetadataInputIndex].Value(),
