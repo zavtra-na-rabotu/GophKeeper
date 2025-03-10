@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"github.com/charmbracelet/bubbles/filepicker"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui"
@@ -13,9 +12,10 @@ import (
 type FilePickerModel struct {
 	parent *BinarySecretModel
 	picker filepicker.Model
+	ctx    *tui.TUIContext
 }
 
-func NewFilePickerModel(parent *BinarySecretModel) *FilePickerModel {
+func NewFilePickerModel(parent *BinarySecretModel, ctx *tui.TUIContext) FilePickerModel {
 	defaultPath, err := os.UserHomeDir()
 	if err != nil {
 		panic(err)
@@ -24,13 +24,12 @@ func NewFilePickerModel(parent *BinarySecretModel) *FilePickerModel {
 	secretFilePicker := filepicker.New()
 	secretFilePicker.CurrentDirectory = filepath.Join(defaultPath)
 	secretFilePicker.AutoHeight = false
-	secretFilePicker.Height = 20
+	secretFilePicker.Height = 15
 
-	secretFilePicker.Init()
-
-	return &FilePickerModel{
+	return FilePickerModel{
 		parent: parent,
 		picker: secretFilePicker,
+		ctx:    ctx,
 	}
 }
 
@@ -38,11 +37,7 @@ func (m FilePickerModel) Init() tea.Cmd {
 	return m.picker.Init()
 }
 
-func (m *FilePickerModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
-	var (
-		cmd tea.Cmd
-	)
-
+func (m *FilePickerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -51,10 +46,12 @@ func (m *FilePickerModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, te
 		}
 	}
 
+	var cmd tea.Cmd
+
 	m.picker, cmd = m.picker.Update(msg)
 
-	if m.picker.Path != "" {
-		m.parent.filePath = m.picker.Path
+	if selected, path := m.picker.DidSelectFile(msg); selected {
+		m.parent.filePath = path
 		return m.parent, nil
 	}
 
@@ -64,7 +61,7 @@ func (m *FilePickerModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, te
 func (m FilePickerModel) View() string {
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("%20s%s:\n", "", m.picker.CurrentDirectory))
+	b.WriteString(m.picker.CurrentDirectory + "\n")
 	b.WriteString(m.picker.View())
 
 	return b.String()

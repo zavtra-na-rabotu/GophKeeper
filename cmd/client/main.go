@@ -35,13 +35,13 @@ func main() {
 	userService := service.NewUserService(userServiceClient)
 	secretService := service.NewSecretService(secretServiceClient, encryptionService)
 
+	// Create TUI context
+	TUIContext := tui.NewTUIContext(userService, secretService)
+
 	// Create initial model
-	initModel := model.NewInitModel()
+	initModel := model.NewInitModel(TUIContext)
 
-	// Create tui context with all dependencies
-	appContext := tui.NewTUIContext(initModel, userService, secretService)
-
-	p := tea.NewProgram(appContext)
+	p := tea.NewProgram(initModel)
 
 	_, err = p.Run()
 	if err != nil {

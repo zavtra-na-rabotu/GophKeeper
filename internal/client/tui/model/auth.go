@@ -28,9 +28,10 @@ type AuthModel struct {
 	error      string
 	buttons    []*components.Button
 	inputs     []textinput.Model
+	ctx        *tui.TUIContext
 }
 
-func NewAuthModel() AuthModel {
+func NewAuthModel(ctx *tui.TUIContext) AuthModel {
 	m := AuthModel{
 		focusIndex: 0,
 		inputs: []textinput.Model{
@@ -42,6 +43,7 @@ func NewAuthModel() AuthModel {
 			{authRegisterButtonIndex, authRegisterButtonText},
 			{authBackButtonIndex, components.BackButtonText},
 		},
+		ctx: ctx,
 	}
 
 	m.inputs[authPasswordInputIndex].EchoMode = textinput.EchoPassword
@@ -54,7 +56,7 @@ func (m AuthModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m AuthModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
+func (m AuthModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -64,27 +66,27 @@ func (m AuthModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) 
 		case "enter":
 			// Handle login button
 			if m.focusIndex == authLoginButtonIndex {
-				err := m.loginUser(ctx)
+				err := m.loginUser(m.ctx)
 				if err != nil {
 					m.error = err.Error()
 				} else {
-					return NewMainModel(ctx), nil
+					return NewMainModel(m.ctx), nil
 				}
 			}
 
 			// Handle register button
 			if m.focusIndex == authRegisterButtonIndex {
-				err := m.registerUser(ctx)
+				err := m.registerUser(m.ctx)
 				if err != nil {
 					m.error = err.Error()
 				} else {
-					return NewMainModel(ctx), nil
+					return NewMainModel(m.ctx), nil
 				}
 			}
 
 			// Handle back button
 			if m.focusIndex == authBackButtonIndex {
-				return NewInitModel(), nil
+				return NewInitModel(m.ctx), nil
 			}
 
 		case "up":
@@ -108,7 +110,7 @@ func (m AuthModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) 
 	return m, cmd
 }
 
-func (m AuthModel) updateInputStyles() (tui.Model, tea.Cmd) {
+func (m AuthModel) updateInputStyles() (tea.Model, tea.Cmd) {
 	cmds := make([]tea.Cmd, len(m.inputs))
 	for i := range m.inputs {
 		if i == m.focusIndex {
@@ -164,7 +166,7 @@ func (m AuthModel) View() string {
 	return b.String()
 }
 
-func (m AuthModel) loginUser(ctx tui.TUIContext) error {
+func (m AuthModel) loginUser(ctx *tui.TUIContext) error {
 	token, err := ctx.UserService.Login(m.inputs[authLoginInputIndex].Value(), m.inputs[authPasswordInputIndex].Value())
 	if err != nil {
 		return err
@@ -176,7 +178,7 @@ func (m AuthModel) loginUser(ctx tui.TUIContext) error {
 	return nil
 }
 
-func (m AuthModel) registerUser(ctx tui.TUIContext) error {
+func (m AuthModel) registerUser(ctx *tui.TUIContext) error {
 	token, err := ctx.UserService.Register(m.inputs[authLoginInputIndex].Value(), m.inputs[authPasswordInputIndex].Value())
 	if err != nil {
 		return err

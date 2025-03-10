@@ -25,9 +25,10 @@ type TextSecretModel struct {
 	error      string
 	buttons    []*components.Button
 	inputs     []textinput.Model
+	ctx        *tui.TUIContext
 }
 
-func NewTextSecretModel() *TextSecretModel {
+func NewTextSecretModel(ctx *tui.TUIContext) *TextSecretModel {
 	return &TextSecretModel{
 		focusIndex: 0,
 		inputs: []textinput.Model{
@@ -39,6 +40,7 @@ func NewTextSecretModel() *TextSecretModel {
 			{textSecretSubmitButtonIndex, components.SubmitButtonText},
 			{textSecretBackButtonIndex, components.BackButtonText},
 		},
+		ctx: ctx,
 	}
 }
 
@@ -46,17 +48,17 @@ func (m *TextSecretModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m *TextSecretModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
+func (m *TextSecretModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
 			if m.focusIndex == textSecretSubmitButtonIndex {
-				m.addSecret(ctx)
-				return NewMainModel(ctx), nil
+				m.addSecret(m.ctx)
+				return NewMainModel(m.ctx), nil
 			}
 			if m.focusIndex == textSecretBackButtonIndex {
-				return NewAddModel(), nil
+				return NewAddModel(m.ctx), nil
 			}
 		case "up":
 			m.focusIndex--
@@ -78,7 +80,7 @@ func (m *TextSecretModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, te
 	return m, cmd
 }
 
-func (m *TextSecretModel) updateInputStyles() (tui.Model, tea.Cmd) {
+func (m *TextSecretModel) updateInputStyles() (tea.Model, tea.Cmd) {
 	cmds := make([]tea.Cmd, len(m.inputs))
 
 	for i := range m.inputs {
@@ -131,7 +133,7 @@ func (m *TextSecretModel) View() string {
 	return b.String()
 }
 
-func (m *TextSecretModel) addSecret(ctx tui.TUIContext) {
+func (m *TextSecretModel) addSecret(ctx *tui.TUIContext) {
 	err := ctx.SecretService.CreateTextSecret(
 		m.inputs[textSecretTitleInputIndex].Value(),
 		m.inputs[textSecretTextInputIndex].Value(),

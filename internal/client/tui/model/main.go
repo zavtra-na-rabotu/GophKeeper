@@ -21,11 +21,13 @@ type MainModel struct {
 	focusIndex int
 	table      [][]string
 	error      string
+	ctx        *tui.TUIContext
 }
 
-func NewMainModel(ctx tui.TUIContext) MainModel {
+func NewMainModel(ctx *tui.TUIContext) MainModel {
 	mainModel := MainModel{
 		focusIndex: 0,
+		ctx:        ctx,
 	}
 
 	mainModel.resetTable()
@@ -38,14 +40,14 @@ func (m MainModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m MainModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
+func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 
 		// TODO: Create back button
 		case "ctrl+c", "q":
-			return NewInitModel(), nil
+			return NewInitModel(m.ctx), nil
 		case "up":
 			if m.focusIndex > 1 {
 				m.focusIndex--
@@ -55,7 +57,7 @@ func (m MainModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) 
 				m.focusIndex++
 			}
 		case "a":
-			return NewAddModel(), nil
+			return NewAddModel(m.ctx), nil
 		//case "a":
 		//	//TODO: CreateSecretScreen
 		//case "e":
@@ -65,8 +67,11 @@ func (m MainModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) 
 			if err != nil {
 				m.error = err.Error()
 			}
-			m.deleteSecret(ctx, secretID)
-			m.getSecrets(ctx)
+			m.deleteSecret(m.ctx, secretID)
+			m.getSecrets(m.ctx)
+			if m.focusIndex > len(m.table)-1 {
+				m.focusIndex = len(m.table) - 1
+			}
 		}
 	}
 	return m, nil
@@ -93,7 +98,7 @@ func (m MainModel) View() string {
 	return b.String()
 }
 
-func (m *MainModel) getSecrets(ctx tui.TUIContext) {
+func (m *MainModel) getSecrets(ctx *tui.TUIContext) {
 	secrets, err := ctx.SecretService.GetSecrets()
 	if err != nil {
 		m.error = err.Error()
@@ -119,7 +124,7 @@ func (m *MainModel) getSecrets(ctx tui.TUIContext) {
 	}
 }
 
-func (m MainModel) deleteSecret(ctx tui.TUIContext, secretID uint64) {
+func (m MainModel) deleteSecret(ctx *tui.TUIContext, secretID uint64) {
 	err := ctx.SecretService.DeleteSecretById(secretID)
 	if err != nil {
 		m.error = err.Error()

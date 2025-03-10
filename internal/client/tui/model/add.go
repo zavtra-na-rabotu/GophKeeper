@@ -23,9 +23,10 @@ const (
 type AddModel struct {
 	focusIndex int
 	buttons    []*components.Button
+	ctx        *tui.TUIContext
 }
 
-func NewAddModel() *AddModel {
+func NewAddModel(ctx *tui.TUIContext) *AddModel {
 	return &AddModel{
 		focusIndex: 0,
 		buttons: []*components.Button{
@@ -35,6 +36,7 @@ func NewAddModel() *AddModel {
 			{addCardButtonIndex, addCardButtonText},
 			{addBackButtonIndex, components.BackButtonText},
 		},
+		ctx: ctx,
 	}
 }
 
@@ -42,7 +44,7 @@ func (m AddModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m AddModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
+func (m AddModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -58,19 +60,19 @@ func (m AddModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
 			}
 		case "enter":
 			if m.focusIndex == addCredentialButtonIndex {
-				return NewCredentialSecretModel(), nil
+				return NewCredentialSecretModel(m.ctx), nil
 			}
 			if m.focusIndex == addTextButtonIndex {
-				return NewTextSecretModel(), nil
+				return NewTextSecretModel(m.ctx), nil
 			}
 			if m.focusIndex == addBinaryButtonIndex {
-				return NewBinarySecretModel(), nil
+				return NewBinarySecretModel(m.ctx), nil
 			}
 			if m.focusIndex == addCardButtonIndex {
 
 			}
 			if m.focusIndex == addBackButtonIndex {
-				return NewMainModel(ctx), nil
+				return NewMainModel(m.ctx), nil
 			}
 		}
 	}

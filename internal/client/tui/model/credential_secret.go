@@ -27,9 +27,10 @@ type CredentialSecretModel struct {
 	error      string
 	buttons    []*components.Button
 	inputs     []textinput.Model
+	ctx        *tui.TUIContext
 }
 
-func NewCredentialSecretModel() *CredentialSecretModel {
+func NewCredentialSecretModel(ctx *tui.TUIContext) *CredentialSecretModel {
 	return &CredentialSecretModel{
 		focusIndex: 0,
 		inputs: []textinput.Model{
@@ -42,6 +43,7 @@ func NewCredentialSecretModel() *CredentialSecretModel {
 			{credentialSubmitButtonIndex, components.SubmitButtonText},
 			{credentialBackButtonIndex, components.BackButtonText},
 		},
+		ctx: ctx,
 	}
 }
 
@@ -49,17 +51,17 @@ func (m *CredentialSecretModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m *CredentialSecretModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
+func (m *CredentialSecretModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "enter":
 			if m.focusIndex == credentialSubmitButtonIndex {
-				m.addSecret(ctx)
-				return NewMainModel(ctx), nil
+				m.addSecret(m.ctx)
+				return NewMainModel(m.ctx), nil
 			}
 			if m.focusIndex == credentialBackButtonIndex {
-				return NewAddModel(), nil
+				return NewAddModel(m.ctx), nil
 			}
 
 		case "up":
@@ -83,7 +85,7 @@ func (m *CredentialSecretModel) Update(ctx tui.TUIContext, msg tea.Msg) (tui.Mod
 	return m, cmd
 }
 
-func (m *CredentialSecretModel) updateInputStyles() (tui.Model, tea.Cmd) {
+func (m *CredentialSecretModel) updateInputStyles() (tea.Model, tea.Cmd) {
 	cmds := make([]tea.Cmd, len(m.inputs))
 
 	for i := range m.inputs {
@@ -140,7 +142,7 @@ func (m *CredentialSecretModel) View() string {
 	return b.String()
 }
 
-func (m *CredentialSecretModel) addSecret(ctx tui.TUIContext) {
+func (m *CredentialSecretModel) addSecret(ctx *tui.TUIContext) {
 	err := ctx.SecretService.CreateCredentialSecret(
 		m.inputs[credentialTitleInputIndex].Value(),
 		m.inputs[credentialLoginInputIndex].Value(),

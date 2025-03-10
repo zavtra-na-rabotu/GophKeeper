@@ -18,15 +18,17 @@ const (
 type InitModel struct {
 	focusIndex int
 	buttons    []*components.Button
+	ctx        *tui.TUIContext
 }
 
-func NewInitModel() *InitModel {
+func NewInitModel(ctx *tui.TUIContext) *InitModel {
 	return &InitModel{
 		focusIndex: 0,
 		buttons: []*components.Button{
 			{initAuthIndex, initAuthButtonText},
 			{initExitIndex, initExitButtonText},
 		},
+		ctx: ctx,
 	}
 }
 
@@ -34,7 +36,7 @@ func (m InitModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m InitModel) Update(_ tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
+func (m InitModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -50,7 +52,7 @@ func (m InitModel) Update(_ tui.TUIContext, msg tea.Msg) (tui.Model, tea.Cmd) {
 			}
 		case "enter":
 			if m.focusIndex == initAuthIndex {
-				return NewAuthModel(), nil
+				return NewAuthModel(m.ctx), nil
 			}
 			if m.focusIndex == initExitIndex {
 				return m, tea.Quit
