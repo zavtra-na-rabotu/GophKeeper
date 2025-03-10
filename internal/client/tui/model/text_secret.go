@@ -6,6 +6,7 @@ import (
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/components"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/style"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/pb"
 	"strings"
 )
 
@@ -28,8 +29,8 @@ type TextSecretModel struct {
 	ctx        *tui.TUIContext
 }
 
-func NewTextSecretModel(ctx *tui.TUIContext) *TextSecretModel {
-	return &TextSecretModel{
+func NewTextSecretModel(ctx *tui.TUIContext, secret *pb.Secret, content *pb.Text) *TextSecretModel {
+	model := &TextSecretModel{
 		focusIndex: 0,
 		inputs: []textinput.Model{
 			components.NewInput(components.InputSettings{Placeholder: textSecretTitleInputText, Focus: true, Style: style.FocusedStyle}),
@@ -42,6 +43,17 @@ func NewTextSecretModel(ctx *tui.TUIContext) *TextSecretModel {
 		},
 		ctx: ctx,
 	}
+
+	if secret != nil {
+		model.inputs[textSecretTitleInputIndex].SetValue(secret.GetTitle())
+		model.inputs[textSecretMetadataInputIndex].SetValue(secret.GetMetadata())
+	}
+
+	if content != nil {
+		model.inputs[textSecretTextInputIndex].SetValue(content.GetText())
+	}
+
+	return model
 }
 
 func (m *TextSecretModel) Init() tea.Cmd {

@@ -6,6 +6,7 @@ import (
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/components"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/style"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/pb"
 	"strings"
 )
 
@@ -36,8 +37,8 @@ type CardSecretModel struct {
 	ctx        *tui.TUIContext
 }
 
-func NewCardSecretModel(ctx *tui.TUIContext) *CardSecretModel {
-	return &CardSecretModel{
+func NewCardSecretModel(ctx *tui.TUIContext, secret *pb.Secret, content *pb.Card) *CardSecretModel {
+	model := &CardSecretModel{
 		focusIndex: 0,
 		inputs: []textinput.Model{
 			components.NewInput(components.InputSettings{Placeholder: cardSecretTitleInputText, Focus: true, Style: style.FocusedStyle}),
@@ -54,6 +55,21 @@ func NewCardSecretModel(ctx *tui.TUIContext) *CardSecretModel {
 		},
 		ctx: ctx,
 	}
+
+	if secret != nil {
+		model.inputs[cardSecretTitleInputIndex].SetValue(secret.GetTitle())
+		model.inputs[cardSecretMetadataInputIndex].SetValue(secret.GetMetadata())
+	}
+
+	if content != nil {
+		model.inputs[cardSecretNumberInputIndex].SetValue(content.GetNumber())
+		model.inputs[cardSecretExpiryMonthInputIndex].SetValue(content.GetExpiryMonth())
+		model.inputs[cardSecretExpiryYearInputIndex].SetValue(content.GetExpiryYear())
+		model.inputs[cardSecretCSCInputIndex].SetValue(content.GetCsc())
+		model.inputs[cardSecretNameInputIndex].SetValue(content.GetName())
+	}
+
+	return model
 }
 
 func (m *CardSecretModel) Init() tea.Cmd {

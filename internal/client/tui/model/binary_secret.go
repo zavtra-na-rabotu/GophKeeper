@@ -6,6 +6,7 @@ import (
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/components"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/style"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/pb"
 	"strings"
 )
 
@@ -29,8 +30,8 @@ type BinarySecretModel struct {
 	ctx        *tui.TUIContext
 }
 
-func NewBinarySecretModel(ctx *tui.TUIContext) *BinarySecretModel {
-	return &BinarySecretModel{
+func NewBinarySecretModel(ctx *tui.TUIContext, secret *pb.Secret, content *pb.Binary) *BinarySecretModel {
+	model := &BinarySecretModel{
 		focusIndex: 0,
 		inputs: []textinput.Model{
 			components.NewInput(components.InputSettings{Placeholder: binarySecretTitleInputText, Focus: true, Style: style.FocusedStyle}),
@@ -43,6 +44,13 @@ func NewBinarySecretModel(ctx *tui.TUIContext) *BinarySecretModel {
 		},
 		ctx: ctx,
 	}
+
+	if secret != nil {
+		model.inputs[binarySecretTitleInputIndex].SetValue(secret.GetTitle())
+		model.inputs[binarySecretMetadataInputIndex].SetValue(secret.GetMetadata())
+	}
+
+	return model
 }
 
 func (m *BinarySecretModel) Init() tea.Cmd {

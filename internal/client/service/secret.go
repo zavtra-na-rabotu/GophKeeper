@@ -54,7 +54,7 @@ func (s *SecretService) CreateCredentialSecret(secretTitle string, secretLogin s
 		Password: secretPassword,
 	}
 
-	encryptedContent, err := s.serializeAndEncryptMessage(credentialsProto)
+	encryptedContent, err := s.marshalAndEncryptMessage(credentialsProto)
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func (s *SecretService) CreateTextSecret(secretTitle string, secretText string, 
 		Text: secretText,
 	}
 
-	encryptedContent, err := s.serializeAndEncryptMessage(textProto)
+	encryptedContent, err := s.marshalAndEncryptMessage(textProto)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (s *SecretService) CreateBinarySecret(secretTitle string, secretBinaryPath 
 		Binary: data,
 	}
 
-	encryptedContent, err := s.serializeAndEncryptMessage(binaryProto)
+	encryptedContent, err := s.marshalAndEncryptMessage(binaryProto)
 	if err != nil {
 		return err
 	}
@@ -150,7 +150,7 @@ func (s *SecretService) CreateCardSecret(secretTitle string, cardNumber string, 
 		Name:        cardName,
 	}
 
-	encryptedContent, err := s.serializeAndEncryptMessage(binaryProto)
+	encryptedContent, err := s.marshalAndEncryptMessage(binaryProto)
 	if err != nil {
 		return err
 	}
@@ -201,13 +201,41 @@ func (s *SecretService) DeleteSecretById(secretID uint64) error {
 	return nil
 }
 
-func (s *SecretService) serializeAndEncryptMessage(message proto.Message) ([]byte, error) {
-	serializedContent, err := proto.Marshal(message)
+func (s *SecretService) DecryptAndUnmarshal(content []byte, secretType pb.SecretType) (proto.Message, error) {
+	decryptedContent, err := s.encryptionService.Decrypt(content, s.password)
 	if err != nil {
 		return nil, err
 	}
 
-	encryptedContent, err := s.encryptionService.Encrypt(serializedContent, s.password)
+	var message proto.Message
+	switch secretType {
+	case pb.SecretType_SECRET_TYPE_CREDENTIAL:
+		message = &pb.Credential{}
+		err = proto.Unmarshal(decryptedContent, message)
+	case pb.SecretType_SECRET_TYPE_TEXT:
+		message = &pb.Text{}
+		err = proto.Unmarshal(decryptedContent, message)
+	case pb.SecretType_SECRET_TYPE_BINARY:
+		message = &pb.Binary{}
+		err = proto.Unmarshal(decryptedContent, message)
+	case pb.SecretType_SECRET_TYPE_CARD:
+		message = &pb.Card{}
+		err = proto.Unmarshal(decryptedContent, message)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return message, nil
+}
+
+func (s *SecretService) marshalAndEncryptMessage(message proto.Message) ([]byte, error) {
+	marshaledContent, err := proto.Marshal(message)
+	if err != nil {
+		return nil, err
+	}
+
+	encryptedContent, err := s.encryptionService.Encrypt(marshaledContent, s.password)
 	if err != nil {
 		return nil, err
 	}

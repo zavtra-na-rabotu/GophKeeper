@@ -60,16 +60,16 @@ func (m AddModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "enter":
 			if m.focusIndex == addCredentialButtonIndex {
-				return NewCredentialSecretModel(m.ctx), nil
+				return NewCredentialSecretModel(m.ctx, nil, nil), nil
 			}
 			if m.focusIndex == addTextButtonIndex {
-				return NewTextSecretModel(m.ctx), nil
+				return NewTextSecretModel(m.ctx, nil, nil), nil
 			}
 			if m.focusIndex == addBinaryButtonIndex {
-				return NewBinarySecretModel(m.ctx), nil
+				return NewBinarySecretModel(m.ctx, nil, nil), nil
 			}
 			if m.focusIndex == addCardButtonIndex {
-				return NewCardSecretModel(m.ctx), nil
+				return NewCardSecretModel(m.ctx, nil, nil), nil
 			}
 			if m.focusIndex == addBackButtonIndex {
 				return NewMainModel(m.ctx), nil

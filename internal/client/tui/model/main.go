@@ -8,6 +8,7 @@ import (
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/style"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/model"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/pb"
 	"strconv"
 	"strings"
 )
@@ -20,6 +21,7 @@ var (
 type MainModel struct {
 	focusIndex int
 	table      [][]string
+	secrets    map[uint64]*pb.Secret
 	error      string
 	ctx        *tui.TUIContext
 }
@@ -28,6 +30,7 @@ func NewMainModel(ctx *tui.TUIContext) MainModel {
 	mainModel := MainModel{
 		focusIndex: 0,
 		ctx:        ctx,
+		secrets:    make(map[uint64]*pb.Secret),
 	}
 
 	mainModel.resetTable()
@@ -44,8 +47,6 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-
-		// TODO: Create back button
 		case "ctrl+c", "q":
 			return NewInitModel(m.ctx), nil
 		case "up":
@@ -58,8 +59,12 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "a":
 			return NewAddModel(m.ctx), nil
-		//case "e":
-		//// TODO: EditSecretScreen
+		case "e":
+			secretID, err := strconv.ParseUint(m.table[m.focusIndex][0], 10, 64)
+			if err != nil {
+				m.error = err.Error()
+			}
+			return m.editSecret(secretID), nil
 		case "d":
 			secretID, err := strconv.ParseUint(m.table[m.focusIndex][0], 10, 64)
 			if err != nil {
@@ -104,6 +109,7 @@ func (m *MainModel) getSecrets(ctx *tui.TUIContext) {
 	}
 
 	m.resetTable()
+	m.secrets = make(map[uint64]*pb.Secret)
 
 	for _, secret := range secrets {
 		secretType, err := model.ProtoToGoSecretType(secret.Type)
@@ -111,6 +117,8 @@ func (m *MainModel) getSecrets(ctx *tui.TUIContext) {
 			m.error = err.Error()
 			return
 		}
+
+		m.secrets[secret.Id] = secret
 
 		m.table = append(m.table, []string{
 			strconv.FormatUint(secret.Id, 10),
@@ -120,6 +128,55 @@ func (m *MainModel) getSecrets(ctx *tui.TUIContext) {
 			secret.UpdatedAt.AsTime().Format("02 Jan 2006 15:04:05"),
 		})
 	}
+}
+
+func (m MainModel) editSecret(secretID uint64) tea.Model {
+	secret, found := m.secrets[secretID]
+	if !found {
+		m.error = "Secret not found"
+		return m
+	}
+
+	content, err := m.ctx.SecretService.DecryptAndUnmarshal(secret.Content, secret.Type)
+	if err != nil {
+		m.error = err.Error()
+	}
+
+	switch secret.Type {
+	case pb.SecretType_SECRET_TYPE_CREDENTIAL:
+		credentials, ok := content.(*pb.Credential)
+		if !ok {
+			m.error = "Failed to parse Credential"
+			return m
+		}
+		return NewCredentialSecretModel(m.ctx, secret, credentials)
+
+	case pb.SecretType_SECRET_TYPE_TEXT:
+		text, ok := content.(*pb.Text)
+		if !ok {
+			m.error = "Failed to parse Text"
+			return m
+		}
+		return NewTextSecretModel(m.ctx, secret, text)
+
+	case pb.SecretType_SECRET_TYPE_BINARY:
+		binary, ok := content.(*pb.Binary)
+		if !ok {
+			m.error = "Failed to parse Binary"
+			return m
+		}
+		return NewBinarySecretModel(m.ctx, secret, binary)
+
+	case pb.SecretType_SECRET_TYPE_CARD:
+		card, ok := content.(*pb.Card)
+		if !ok {
+			m.error = "Failed to parse Card"
+			return m
+		}
+		return NewCardSecretModel(m.ctx, secret, card)
+	}
+
+	return m
 }
 
 func (m MainModel) deleteSecret(ctx *tui.TUIContext, secretID uint64) {

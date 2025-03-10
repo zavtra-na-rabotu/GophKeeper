@@ -6,6 +6,7 @@ import (
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/components"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/style"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/pb"
 	"strings"
 )
 
@@ -30,8 +31,8 @@ type CredentialSecretModel struct {
 	ctx        *tui.TUIContext
 }
 
-func NewCredentialSecretModel(ctx *tui.TUIContext) *CredentialSecretModel {
-	return &CredentialSecretModel{
+func NewCredentialSecretModel(ctx *tui.TUIContext, secret *pb.Secret, content *pb.Credential) *CredentialSecretModel {
+	model := &CredentialSecretModel{
 		focusIndex: 0,
 		inputs: []textinput.Model{
 			components.NewInput(components.InputSettings{Placeholder: credentialTitleInputText, Focus: true, Style: style.FocusedStyle}),
@@ -45,6 +46,18 @@ func NewCredentialSecretModel(ctx *tui.TUIContext) *CredentialSecretModel {
 		},
 		ctx: ctx,
 	}
+	
+	if secret != nil {
+		model.inputs[credentialTitleInputIndex].SetValue(secret.GetTitle())
+		model.inputs[credentialMetadataInputIndex].SetValue(secret.GetMetadata())
+	}
+
+	if content != nil {
+		model.inputs[credentialLoginInputIndex].SetValue(content.GetLogin())
+		model.inputs[credentialPasswordInputIndex].SetValue(content.GetPassword())
+	}
+
+	return model
 }
 
 func (m *CredentialSecretModel) Init() tea.Cmd {
