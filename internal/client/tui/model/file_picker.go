@@ -61,6 +61,8 @@ func (m *FilePickerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m FilePickerModel) View() string {
 	var b strings.Builder
 
+	b.WriteString("Select file. Use ←, ↑, →, ↓ to navigate. Press Q to go back \n\n")
+
 	b.WriteString(m.picker.CurrentDirectory + "\n")
 	b.WriteString(m.picker.View())
 

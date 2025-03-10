@@ -43,8 +43,6 @@ func main() {
 	}
 
 	// Create dependencies
-	//transactionManager := db.NewTransactionManager(dbConnection)
-
 	jwtService := security.NewJwtService([]byte(config.JwtSecret), config.JwtLifetimeHours)
 
 	// User

@@ -47,7 +47,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
+		case "q":
 			return NewInitModel(m.ctx), nil
 		case "up":
 			if m.focusIndex > 1 {
@@ -60,12 +60,18 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "a":
 			return NewAddModel(m.ctx), nil
 		case "e":
+			if m.focusIndex == 0 {
+				return m, nil
+			}
 			secretID, err := strconv.ParseUint(m.table[m.focusIndex][0], 10, 64)
 			if err != nil {
 				m.error = err.Error()
 			}
 			return m.editSecret(secretID), nil
 		case "d":
+			if m.focusIndex == 0 {
+				return m, nil
+			}
 			secretID, err := strconv.ParseUint(m.table[m.focusIndex][0], 10, 64)
 			if err != nil {
 				m.error = err.Error()
@@ -82,6 +88,8 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m MainModel) View() string {
 	var b strings.Builder
+
+	b.WriteString(style.HintStyle.Render("Use (↑, ↓, 'Enter') to navigate menu, (A)dd, (E)dit, (D)elete. Press Q to go back") + "\n\n")
 
 	for i, row := range m.table {
 		line := fmt.Sprintf("%-4s %-10s %-10s %-20s %-20s", row[0], row[1], row[2], row[3], row[4])
