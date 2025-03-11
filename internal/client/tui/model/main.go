@@ -92,7 +92,7 @@ func (m MainModel) View() string {
 	b.WriteString(style.HintStyle.Render("Use (↑, ↓, 'Enter') to navigate, (A)dd, (E)dit, (D)elete, (Q)uit") + "\n\n")
 
 	for i, row := range m.table {
-		line := fmt.Sprintf("%-4s %-10s %-10s %-20s %-20s", row[0], row[1], row[2], row[3], row[4])
+		line := fmt.Sprintf("%-5s %-20s %-10s %-20s %-20s", row[0], row[1], row[2], row[3], row[4])
 		if i == 0 {
 			b.WriteString(headerStyle.Render(line) + "\n")
 		} else if i == m.focusIndex {

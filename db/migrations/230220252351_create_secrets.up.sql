@@ -9,9 +9,3 @@ CREATE TABLE secrets
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
-
--- CREATE TRIGGER trigger_update_timestamp
---     BEFORE UPDATE
---     ON secrets
---     FOR EACH ROW
--- EXECUTE FUNCTION update_timestamp();

@@ -6,9 +6,3 @@ CREATE TABLE IF NOT EXISTS users
     created_at    TIMESTAMP DEFAULT now(),
     updated_at    TIMESTAMP DEFAULT now()
 );
-
-CREATE TRIGGER trigger_update_timestamp
-    BEFORE UPDATE
-    ON users
-    FOR EACH ROW
-EXECUTE FUNCTION update_timestamp();
