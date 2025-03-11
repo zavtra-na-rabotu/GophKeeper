@@ -1,0 +1,82 @@
+package service
+
+import (
+	"context"
+	"fmt"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/model"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/pb"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/server/db/repository"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/server/interceptor"
+	"go.uber.org/zap"
+)
+
+type SecretService struct {
+	secretRepository *repository.SecretRepository
+}
+
+func NewSecretService(secretRepository *repository.SecretRepository) *SecretService {
+	return &SecretService{
+		secretRepository: secretRepository,
+	}
+}
+
+// Save to create secret
+func (s *SecretService) Save(ctx context.Context, request *pb.SaveSecretRequest) error {
+	secret, err := model.ProtoToGoSecret(request.Secret)
+	if err != nil {
+		zap.L().Error("Secret request mapping failed", zap.Error(err))
+		return fmt.Errorf("secret mapping failed: %w", err)
+	}
+
+	userID := ctx.Value(interceptor.UserIDContextKey)
+
+	secret.UserID = userID.(uint64)
+
+	if secret.ID > 0 {
+		err = s.secretRepository.Update(ctx, secret)
+	} else {
+		_, err = s.secretRepository.Create(ctx, secret)
+	}
+	if err != nil {
+		zap.L().Error("Failed to save secret", zap.Error(err))
+		return fmt.Errorf("failed to save secret: %w", err)
+	}
+
+	return nil
+}
+
+// GetAll to get all secrets
+func (s *SecretService) GetAll(ctx context.Context) ([]*pb.Secret, error) {
+	userID := ctx.Value(interceptor.UserIDContextKey).(uint64)
+
+	secrets, err := s.secretRepository.GetAllByUserID(ctx, userID)
+	if err != nil {
+		zap.L().Error("Failed to get all user secrets", zap.Error(err))
+		return nil, fmt.Errorf("failed to get all user secrets: %w", err)
+	}
+
+	var protoSecrets []*pb.Secret
+	for _, secret := range secrets {
+		protoSecret, err := model.GoToProtoSecret(secret)
+		if err != nil {
+			zap.L().Error("Failed to convert secret to proto", zap.Error(err))
+			return nil, fmt.Errorf("failed to convert secret to proto: %w", err)
+		}
+		protoSecrets = append(protoSecrets, protoSecret)
+	}
+
+	return protoSecrets, nil
+}
+
+// DeleteSecret to delete secret
+func (s *SecretService) DeleteSecret(ctx context.Context, secretID uint64) error {
+	userID := ctx.Value(interceptor.UserIDContextKey).(uint64)
+
+	err := s.secretRepository.DeleteByUserID(ctx, secretID, userID)
+	if err != nil {
+		zap.L().Error("Failed to delete secret", zap.Error(err))
+		return fmt.Errorf("failed to delete secret: %w", err)
+	}
+
+	return nil
+}
