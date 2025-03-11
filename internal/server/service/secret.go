@@ -20,6 +20,7 @@ func NewSecretService(secretRepository *repository.SecretRepository) *SecretServ
 	}
 }
 
+// Save to create secret
 func (s *SecretService) Save(ctx context.Context, request *pb.SaveSecretRequest) error {
 	secret, err := model.ProtoToGoSecret(request.Secret)
 	if err != nil {
@@ -44,6 +45,7 @@ func (s *SecretService) Save(ctx context.Context, request *pb.SaveSecretRequest)
 	return nil
 }
 
+// GetAll to get all secrets
 func (s *SecretService) GetAll(ctx context.Context) ([]*pb.Secret, error) {
 	userID := ctx.Value(interceptor.UserIDContextKey).(uint64)
 
@@ -66,6 +68,7 @@ func (s *SecretService) GetAll(ctx context.Context) ([]*pb.Secret, error) {
 	return protoSecrets, nil
 }
 
+// DeleteSecret to delete secret
 func (s *SecretService) DeleteSecret(ctx context.Context, secretID uint64) error {
 	userID := ctx.Value(interceptor.UserIDContextKey).(uint64)
 

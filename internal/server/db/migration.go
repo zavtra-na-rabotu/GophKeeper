@@ -11,6 +11,7 @@ import (
 
 var ErrMigrationsFailed = errors.New("migrations failed")
 
+// RunMigrations runs all DB migrations
 func RunMigrations(db *sql.DB) error {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {

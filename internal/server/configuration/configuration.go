@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// Configuration for server settings
 type Configuration struct {
 	GRPCPort         int    `json:"grpc_port"`
 	DatabaseDsn      string `json:"database_dsn"`
@@ -21,6 +22,7 @@ type envs struct {
 	JwtLifetimeHours int    `env:"JWT_LIFETIME_HOURS"`
 }
 
+// Configure loads configuration from flags and env variables
 func Configure() *Configuration {
 	var config Configuration
 

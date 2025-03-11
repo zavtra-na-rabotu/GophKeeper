@@ -24,6 +24,7 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 	return &UserRepository{db: db}
 }
 
+// GetByLogin retrieves user by login
 func (r *UserRepository) GetByLogin(ctx context.Context, login string) (*model.User, error) {
 	row := r.db.QueryRowContext(ctx, `SELECT id, login, password_hash FROM users WHERE login = $1`, login)
 
@@ -40,6 +41,7 @@ func (r *UserRepository) GetByLogin(ctx context.Context, login string) (*model.U
 	return &user, nil
 }
 
+// Create creates new user in DB
 func (r *UserRepository) Create(ctx context.Context, login string, password string) (uint64, error) {
 	row := r.db.QueryRowContext(ctx, `INSERT INTO users (login, password_hash) VALUES ($1, $2) RETURNING id`, login, password)
 

@@ -24,6 +24,7 @@ type SecretService struct {
 	token               string
 }
 
+// NewSecretService constructor
 func NewSecretService(secretServiceClient pb.SecretServiceClient, encryptionService *security.EncryptionService) *SecretService {
 	return &SecretService{
 		secretServiceClient: secretServiceClient,
@@ -31,14 +32,17 @@ func NewSecretService(secretServiceClient pb.SecretServiceClient, encryptionServ
 	}
 }
 
+// SetPassword sets the encryption password
 func (s *SecretService) SetPassword(password string) {
 	s.password = password
 }
 
+// SetToken sets the authentication token
 func (s *SecretService) SetToken(token string) {
 	s.token = token
 }
 
+// CreateCredentialSecret creates and stores a credential-type secret
 func (s *SecretService) CreateCredentialSecret(secretID uint64, secretTitle string, secretLogin string, secretPassword string, secretMetadata string) error {
 	if len(s.token) == 0 {
 		return ErrNoToken
@@ -69,6 +73,7 @@ func (s *SecretService) CreateCredentialSecret(secretID uint64, secretTitle stri
 	return nil
 }
 
+// CreateTextSecret creates and stores a text-type secret
 func (s *SecretService) CreateTextSecret(secretID uint64, secretTitle string, secretText string, secretMetadata string) error {
 	if len(s.token) == 0 {
 		return ErrNoToken
@@ -98,6 +103,7 @@ func (s *SecretService) CreateTextSecret(secretID uint64, secretTitle string, se
 	return nil
 }
 
+// CreateBinarySecret creates and stores a binary-type secret
 func (s *SecretService) CreateBinarySecret(secretID uint64, secretTitle string, secretBinaryPath string, secretMetadata string) error {
 	if len(s.token) == 0 {
 		return ErrNoToken
@@ -132,6 +138,7 @@ func (s *SecretService) CreateBinarySecret(secretID uint64, secretTitle string, 
 	return nil
 }
 
+// CreateCardSecret creates and stores a card-type secret
 func (s *SecretService) CreateCardSecret(secretID uint64, secretTitle string, cardNumber string, cardExpiryMonth string, cardExpiryYear string, cardCsc string, cardName string, secretMetadata string) error {
 	if len(s.token) == 0 {
 		return ErrNoToken
@@ -165,6 +172,7 @@ func (s *SecretService) CreateCardSecret(secretID uint64, secretTitle string, ca
 	return nil
 }
 
+// GetSecrets retrieves all stored secrets
 func (s *SecretService) GetSecrets() ([]*pb.Secret, error) {
 	if len(s.token) == 0 {
 		return nil, ErrNoToken
@@ -183,6 +191,7 @@ func (s *SecretService) GetSecrets() ([]*pb.Secret, error) {
 	return res.GetSecrets(), nil
 }
 
+// DeleteSecretById deletes a secret by its ID
 func (s *SecretService) DeleteSecretById(secretID uint64) error {
 	if len(s.token) == 0 {
 		return ErrNoToken
@@ -201,6 +210,7 @@ func (s *SecretService) DeleteSecretById(secretID uint64) error {
 	return nil
 }
 
+// DecryptAndUnmarshal decrypts and unmarshals encrypted secret data
 func (s *SecretService) DecryptAndUnmarshal(content []byte, secretType pb.SecretType) (proto.Message, error) {
 	decryptedContent, err := s.encryptionService.Decrypt(content, s.password)
 	if err != nil {

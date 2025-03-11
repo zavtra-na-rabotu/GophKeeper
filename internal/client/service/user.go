@@ -16,6 +16,7 @@ func NewUserService(userServiceClient pb.UserServiceClient) *UserService {
 	}
 }
 
+// Login authenticates user
 func (s *UserService) Login(login string, password string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
@@ -33,6 +34,7 @@ func (s *UserService) Login(login string, password string) (string, error) {
 	return res.Token, nil
 }
 
+// Register registers user
 func (s *UserService) Register(login string, password string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()

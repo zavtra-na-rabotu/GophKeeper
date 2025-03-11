@@ -15,10 +15,13 @@ const (
 type EncryptionService struct {
 }
 
+// NewEncryptionService constructor
 func NewEncryptionService() *EncryptionService {
 	return &EncryptionService{}
 }
 
+// DeriveKey generates a cryptographic key from a password and a salt using Argon2.
+// If no salt is provided, it generates a new random salt.
 func (s *EncryptionService) DeriveKey(password string, salt []byte) ([]byte, []byte, error) {
 	// If no salt - generate new random one
 	if len(salt) == 0 {
@@ -33,6 +36,7 @@ func (s *EncryptionService) DeriveKey(password string, salt []byte) ([]byte, []b
 	return argon2.IDKey([]byte(password), salt, 1, 64*1024, 4, 32), salt, nil
 }
 
+// Encrypt encrypts plaintext using AES-GCM with a key derived from the provided password.
 func (s *EncryptionService) Encrypt(plaintext []byte, password string) ([]byte, error) {
 	key, salt, err := s.DeriveKey(password, nil)
 	if err != nil {
@@ -67,6 +71,7 @@ func (s *EncryptionService) Encrypt(plaintext []byte, password string) ([]byte, 
 	return ciphertext, nil
 }
 
+// Decrypt decrypts the given ciphertext using AES-GCM and a key derived from the provided password.
 func (s *EncryptionService) Decrypt(ciphertext []byte, password string) ([]byte, error) {
 	// Get salt and encrypted data
 	endOfData := len(ciphertext) - defaultSaltLength

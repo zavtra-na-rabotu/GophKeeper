@@ -15,6 +15,7 @@ func NewSecretRepository(db *sql.DB) *SecretRepository {
 	return &SecretRepository{db: db}
 }
 
+// Create creates new secret in DB
 func (r *SecretRepository) Create(ctx context.Context, secret *model.Secret) (int, error) {
 	row := r.db.QueryRowContext(
 		ctx,
@@ -37,6 +38,7 @@ func (r *SecretRepository) Create(ctx context.Context, secret *model.Secret) (in
 	return secretID, nil
 }
 
+// Update updates new secret in DB
 func (r *SecretRepository) Update(ctx context.Context, secret *model.Secret) error {
 	_, err := r.db.ExecContext(
 		ctx,
@@ -55,6 +57,7 @@ func (r *SecretRepository) Update(ctx context.Context, secret *model.Secret) err
 	return nil
 }
 
+// GetAllByUserID retrieves all secrets from DB by user_id
 func (r *SecretRepository) GetAllByUserID(ctx context.Context, userID uint64) ([]*model.Secret, error) {
 	rows, err := r.db.QueryContext(
 		ctx,
@@ -85,6 +88,7 @@ func (r *SecretRepository) GetAllByUserID(ctx context.Context, userID uint64) ([
 	return secrets, nil
 }
 
+// DeleteByUserID deletes secret by user_id
 func (r *SecretRepository) DeleteByUserID(ctx context.Context, secretID uint64, userID uint64) error {
 	_, err := r.db.ExecContext(ctx, "DELETE FROM secrets WHERE id = $1 AND user_id = $2", secretID, userID)
 	if err != nil {

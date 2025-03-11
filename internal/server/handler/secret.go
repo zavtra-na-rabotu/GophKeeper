@@ -20,6 +20,7 @@ func NewSecretHandler(secretService *service.SecretService) *SecretHandler {
 	}
 }
 
+// SaveSecret handles the gRPC request to save a secret
 func (h *SecretHandler) SaveSecret(ctx context.Context, request *pb.SaveSecretRequest) (*emptypb.Empty, error) {
 	err := h.secretService.Save(ctx, request)
 	if err != nil {
@@ -29,6 +30,7 @@ func (h *SecretHandler) SaveSecret(ctx context.Context, request *pb.SaveSecretRe
 	return &emptypb.Empty{}, nil
 }
 
+// GetSecrets handles the gRPC request to retrieve all stored secrets
 func (h *SecretHandler) GetSecrets(ctx context.Context, _ *emptypb.Empty) (*pb.GetSecretsResponse, error) {
 	secrets, err := h.secretService.GetAll(ctx)
 	if err != nil {
@@ -38,6 +40,7 @@ func (h *SecretHandler) GetSecrets(ctx context.Context, _ *emptypb.Empty) (*pb.G
 	return &pb.GetSecretsResponse{Secrets: secrets}, nil
 }
 
+// DeleteSecret handles the gRPC request to delete a secret by its ID
 func (h *SecretHandler) DeleteSecret(ctx context.Context, request *pb.DeleteSecretByIdRequest) (*emptypb.Empty, error) {
 	err := h.secretService.DeleteSecret(ctx, request.Id)
 	if err != nil {

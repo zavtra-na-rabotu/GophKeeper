@@ -19,6 +19,7 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 	}
 }
 
+// Login handles the gRPC request to authenticate user
 func (h *UserHandler) Login(ctx context.Context, request *pb.LoginRequest) (*pb.LoginResponse, error) {
 	token, err := h.userService.Login(ctx, request)
 	if err != nil {
@@ -29,6 +30,7 @@ func (h *UserHandler) Login(ctx context.Context, request *pb.LoginRequest) (*pb.
 	}, nil
 }
 
+// Register handles the gRPC request to register user
 func (h *UserHandler) Register(ctx context.Context, request *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	token, err := h.userService.Register(ctx, request)
 	if err != nil {

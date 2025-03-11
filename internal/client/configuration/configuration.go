@@ -7,6 +7,7 @@ import (
 	"os"
 )
 
+// Configuration for client settings
 type Configuration struct {
 	ServerAddress string `json:"server_address"`
 }
@@ -15,6 +16,7 @@ type envs struct {
 	ServerAddress string `env:"SERVER_ADDRESS"`
 }
 
+// Configure loads configuration from flags and env variables
 func Configure() *Configuration {
 	var config Configuration
 

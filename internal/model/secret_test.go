@@ -3,35 +3,8 @@ package model
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/pb"
-	"reflect"
 	"testing"
 )
-
-func TestGoToProtoSecret(t *testing.T) {
-	type args struct {
-		secret *Secret
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *pb.Secret
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := GoToProtoSecret(tt.args.secret)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GoToProtoSecret() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GoToProtoSecret() got = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
 
 func TestGoToProtoSecretType(t *testing.T) {
 	tests := []struct {
@@ -67,32 +40,6 @@ func TestGoToProtoSecretType(t *testing.T) {
 			assert.NoError(t, err)
 
 			assert.Equal(t, got, tt.want)
-		})
-	}
-}
-
-func TestProtoToGoSecret(t *testing.T) {
-	type args struct {
-		secret *pb.Secret
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    *Secret
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := ProtoToGoSecret(tt.args.secret)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ProtoToGoSecret() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ProtoToGoSecret() got = %v, want %v", got, tt.want)
-			}
 		})
 	}
 }

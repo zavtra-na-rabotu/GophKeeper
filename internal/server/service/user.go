@@ -23,6 +23,7 @@ func NewUserService(userRepository *repository.UserRepository, jwtGenerator *sec
 	}
 }
 
+// Login authenticates user
 func (s *UserService) Login(ctx context.Context, request *pb.LoginRequest) (string, error) {
 	user, err := s.userRepository.GetByLogin(ctx, request.Login)
 	if err != nil {
@@ -37,6 +38,7 @@ func (s *UserService) Login(ctx context.Context, request *pb.LoginRequest) (stri
 	return s.jwtGenerator.GenerateJwtToken(user.ID)
 }
 
+// Register registers user
 func (s *UserService) Register(ctx context.Context, request *pb.RegisterRequest) (string, error) {
 	hash, err := security.HashPassword(request.Password)
 	if err != nil {
