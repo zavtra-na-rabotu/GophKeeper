@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/filepicker"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui"
+	"github.com/zavtra-na-rabotu/GophKeeper/internal/client/tui/style"
 	"os"
 	"path/filepath"
 	"strings"
@@ -61,7 +62,7 @@ func (m *FilePickerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m FilePickerModel) View() string {
 	var b strings.Builder
 
-	b.WriteString("Select file. Use ←, ↑, →, ↓ to navigate. Press Q to go back \n\n")
+	b.WriteString(style.HintStyle.Render("Use (↑, ↓, ←, →, 'Enter') to navigate. Press Q to go back") + "\n\n")
 
 	b.WriteString(m.picker.CurrentDirectory + "\n")
 	b.WriteString(m.picker.View())

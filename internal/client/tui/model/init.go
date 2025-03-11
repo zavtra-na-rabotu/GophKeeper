@@ -40,8 +40,6 @@ func (m InitModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "q":
-			return m, tea.Quit
 		case "up":
 			if m.focusIndex > 0 {
 				m.focusIndex--
@@ -65,7 +63,7 @@ func (m InitModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m InitModel) View() string {
 	var b strings.Builder
 
-	b.WriteString(style.HintStyle.Render("Use (↑, ↓, 'Enter') to navigate menu. Press Q to go back") + "\n\n")
+	b.WriteString(style.HintStyle.Render("Use (↑, ↓, 'Enter') to navigate") + "\n\n")
 
 	for _, btn := range m.buttons {
 		btnStyle := style.BlurredStyle

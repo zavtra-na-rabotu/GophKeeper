@@ -141,6 +141,8 @@ func (m *CardSecretModel) updateInputs(msg tea.Msg) tea.Cmd {
 func (m *CardSecretModel) View() string {
 	var b strings.Builder
 
+	b.WriteString(style.HintStyle.Render("Use (↑, ↓, 'Enter') to navigate") + "\n\n")
+
 	for i := range m.inputs {
 		b.WriteString(m.inputs[i].View())
 		b.WriteRune('\n')

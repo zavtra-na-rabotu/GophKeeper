@@ -125,6 +125,8 @@ func (m *TextSecretModel) updateInputs(msg tea.Msg) tea.Cmd {
 func (m *TextSecretModel) View() string {
 	var b strings.Builder
 
+	b.WriteString(style.HintStyle.Render("Use (↑, ↓, 'Enter') to navigate") + "\n\n")
+
 	for i := range m.inputs {
 		b.WriteString(m.inputs[i].View())
 		b.WriteRune('\n')

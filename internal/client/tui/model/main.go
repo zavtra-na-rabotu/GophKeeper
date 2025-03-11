@@ -89,7 +89,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m MainModel) View() string {
 	var b strings.Builder
 
-	b.WriteString(style.HintStyle.Render("Use (↑, ↓, 'Enter') to navigate menu, (A)dd, (E)dit, (D)elete. Press Q to go back") + "\n\n")
+	b.WriteString(style.HintStyle.Render("Use (↑, ↓, 'Enter') to navigate, (A)dd, (E)dit, (D)elete, (Q)uit") + "\n\n")
 
 	for i, row := range m.table {
 		line := fmt.Sprintf("%-4s %-10s %-10s %-20s %-20s", row[0], row[1], row[2], row[3], row[4])

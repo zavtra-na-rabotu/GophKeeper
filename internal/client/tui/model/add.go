@@ -83,6 +83,8 @@ func (m AddModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m AddModel) View() string {
 	var b strings.Builder
 
+	b.WriteString(style.HintStyle.Render("Use (↑, ↓, 'Enter') to navigate. Press Q to go back") + "\n\n")
+
 	for _, btn := range m.buttons {
 		btnStyle := style.BlurredStyle
 		if m.focusIndex == btn.Index {

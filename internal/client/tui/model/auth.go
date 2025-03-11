@@ -60,9 +60,6 @@ func (m AuthModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
-		//case "ctrl+c", "esc":
-		//	return NewInitModel(), nil
-
 		case "enter":
 			// Handle login button
 			if m.focusIndex == authLoginButtonIndex {
@@ -141,6 +138,8 @@ func (m AuthModel) updateInputs(msg tea.Msg) tea.Cmd {
 
 func (m AuthModel) View() string {
 	var b strings.Builder
+
+	b.WriteString(style.HintStyle.Render("Use (↑, ↓, 'Enter') to navigate") + "\n\n")
 
 	// Render inputs
 	for i := range m.inputs {

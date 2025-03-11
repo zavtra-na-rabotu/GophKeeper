@@ -133,6 +133,8 @@ func (m *CredentialSecretModel) updateInputs(msg tea.Msg) tea.Cmd {
 func (m *CredentialSecretModel) View() string {
 	var b strings.Builder
 
+	b.WriteString(style.HintStyle.Render("Use (↑, ↓, 'Enter') to navigate") + "\n\n")
+
 	// Render inputs
 	for i := range m.inputs {
 		b.WriteString(m.inputs[i].View())
